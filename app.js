@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 const businessRoutes = require('./routes/businessRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -12,6 +14,22 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+const options = {
+  definition: {
+    openapi: "3.0.3",
+    info: {
+      title: "MyApp API",
+      version: "1.0.0",
+      description: "Automatically generated Swagger docs",
+    },
+  },
+  apis: ["./routes/*.js"], // Path to your route files
+};
+
+const swaggerSpec = swaggerJsdoc(options);
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/business', businessRoutes);
 app.use('/admin', adminRoutes);

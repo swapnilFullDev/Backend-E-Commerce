@@ -6,6 +6,7 @@ const UserModel = require('../models/userModel');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key';
 
+
 // Login route
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -49,6 +50,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Login failed', details: err.message });
   }
 });
+
 
 // Reset password route
 router.post('/reset', async (req, res) => {
