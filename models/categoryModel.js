@@ -18,6 +18,15 @@ class CategoryModel {
     return rows;
   }
 
+  static async createCategory({ name, image = null, icon = null, parentId = null, status = 'active' }) {
+    const [result] = await pool.execute(
+      `INSERT INTO Categories (Name, Image, Icon, Parent_ID, Status)
+       VALUES (?, ?, ?, ?, ?)`,
+      [name, image, icon, parentId, status]
+    );
+    return result.insertId; // Return the newly created category ID
+  }
+
   // Optional: Get category by ID
   static async getById(id) {
     const [rows] = await pool.execute(
