@@ -5,7 +5,7 @@ const ProductsModel = require('../models/ProductsModel');
 const router = express.Router();
 
 // Get product by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticateToken,async (req, res) => {
   const productId = Number(req.params.id);
   if (isNaN(productId)) return res.status(400).json({ error: 'Invalid Product ID' });
 
@@ -20,7 +20,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Get products by status
-router.get('/status/:status', async (req, res) => {
+router.get('/status/:status', authenticateToken,async (req, res) => {
   const status = req.params.status;
   const validStatuses = ['pending','approved','rejected','blocked'];
   if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
@@ -35,7 +35,7 @@ router.get('/status/:status', async (req, res) => {
 });
 
 // Get products by business
-router.get('/business/:businessId', async (req, res) => {
+router.get('/business/:businessId', authenticateToken,async (req, res) => {
   const businessId = Number(req.params.businessId);
   if (isNaN(businessId)) return res.status(400).json({ error: 'Invalid Business ID' });
 
@@ -49,7 +49,7 @@ router.get('/business/:businessId', async (req, res) => {
 });
 
 // Create product
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken,async (req, res) => {
   try {
     const product = await ProductsModel.createProduct(req.body);
     res.status(201).json(product);
@@ -60,7 +60,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update product
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken,async (req, res) => {
   const productId = Number(req.params.id);
   if (isNaN(productId)) return res.status(400).json({ error: 'Invalid Product ID' });
 
@@ -74,7 +74,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Admin: update product status
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', authenticateToken,async (req, res) => {
   const productId = Number(req.params.id);
   if (isNaN(productId)) return res.status(400).json({ error: 'Invalid Product ID' });
 

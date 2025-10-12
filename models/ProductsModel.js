@@ -47,7 +47,7 @@ class ProductsModel {
         product.Price,
         product.Stock_Quantity || 0,
         product.Images || null,
-        product.Status,
+        'Pending',
         product.SKU
       ]
     );

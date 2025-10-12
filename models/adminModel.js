@@ -88,6 +88,49 @@ async function approveBusinessAndCreateLogin(businessId) {
   }
 }
 
+async function createSuperAdmin(username, password) {
+  const conn = await pool.getConnection();
+  let hashedPassword;
+  try {
+    await conn.beginTransaction();
+
+    // Check if user with same username already exists
+    const [existingRows] = await conn.execute(
+      'SELECT * FROM Users WHERE Username = ?',
+      [username]
+    );
+
+    if (existingRows.length > 0) {
+      throw new Error('User with this username already exists.');
+    }
+
+    // Hash the password
+    hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insert new super admin user
+    await conn.execute(
+      `INSERT INTO Users (BusinessId, Username, PasswordHash, Role, IsActive)
+       VALUES (NULL, ?, ?, 'super admin', 1)`,
+      [username, hashedPassword]
+    );
+
+    await conn.commit();
+
+    return {
+      username,
+      tempPassword: password,
+      message: 'Super admin created successfully.'
+    };
+
+  } catch (error) {
+    await conn.rollback();
+    throw error;
+  } finally {
+    conn.release();
+  }
+}
+
 module.exports = {
-  approveBusinessAndCreateLogin
+  approveBusinessAndCreateLogin,
+  createSuperAdmin
 };

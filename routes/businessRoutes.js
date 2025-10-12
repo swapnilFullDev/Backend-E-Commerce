@@ -4,7 +4,7 @@ const { authenticateToken } = require('../middleware/auth');
 const BusinessModel = require('../models/businessModel');
 
 // Create a new business
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const newId = await BusinessModel.create(req.body);
     res.status(201).json({ message: 'Created successfully', insertedId: newId });

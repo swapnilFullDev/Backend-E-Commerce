@@ -6,6 +6,7 @@ const businessRoutes = require('./routes/businessRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const authRoutes = require('./routes/authRoutes');
 const productsRoutes = require('./routes/productsRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 // Initialize an Express application
 const app = express();
@@ -16,6 +17,7 @@ app.use('/business', businessRoutes);
 app.use('/admin', adminRoutes);
 app.use('/auth', authRoutes);
 app.use('/products', productsRoutes);
+app.use('/categories', categoryRoutes);
 
 // Set the port for the server to listen on
 const port = 3000;
