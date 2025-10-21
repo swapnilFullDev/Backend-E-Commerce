@@ -111,7 +111,7 @@ router.get('/all', authenticateToken, async (req, res) => {
 
     let products;
 
-    if (user.role === 'superadmin') {
+    if (user.role === 'super admin') {
       // Super admin: all products
       products = await ProductsModel.getAllProducts(page, limit, search);
     } else {
