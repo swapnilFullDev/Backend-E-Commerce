@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Products API",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "API endpoints for managing products"
   },
   "paths": {
@@ -25,6 +25,26 @@
           },
           "404": { "description": "Product not found" }
         }
+      },
+      "put": {
+        "summary": "Update an existing product",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object" },
+              "example": {
+                "Name": "Updated Product Name",
+                "Price": 55.00,
+                "Stock_Quantity": 15
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Product updated successfully" } }
       }
     },
     "/product/status/{status}": {
@@ -38,39 +58,17 @@
             "schema": { "type": "string", "enum": ["pending","approved","rejected","blocked"] },
             "description": "Product status filter"
           },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "integer", "default": 1 },
-            "description": "Page number"
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "integer", "default": 10 },
-            "description": "Number of items per page"
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "string" },
-            "description": "Search term for product name"
-          }
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Search term for product name" }
         ],
         "responses": {
           "200": {
             "description": "Products retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": [
-                  { "ID": 1, "Name": "Sample Product", "Price": 99.99, "Status": "approved" },
-                  { "ID": 2, "Name": "Another Product", "Price": 49.99, "Status": "approved" }
-                ]
-              }
-            }
+            "content": { "application/json": { "example": [
+              { "ID": 1, "Name": "Sample Product", "Price": 99.99, "Status": "approved" },
+              { "ID": 2, "Name": "Another Product", "Price": 49.99, "Status": "approved" }
+            ] } }
           }
         }
       }
@@ -79,44 +77,37 @@
       "get": {
         "summary": "Get products by business with pagination and search",
         "parameters": [
-          {
-            "name": "businessId",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "integer" },
-            "description": "Business ID"
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "integer", "default": 1 }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "integer", "default": 10 }
-          },
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "string" },
-            "description": "Search term for product name"
-          }
+          { "name": "businessId", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Search term for product name" }
         ],
         "responses": {
           "200": {
             "description": "Products retrieved successfully",
-            "content": {
-              "application/json": {
-                "example": [
-                  { "ID": 3, "Name": "Business Product 1", "Price": 120.00 },
-                  { "ID": 4, "Name": "Business Product 2", "Price": 80.50 }
-                ]
-              }
-            }
+            "content": { "application/json": { "example": [
+              { "ID": 3, "Name": "Business Product 1", "Price": 120.00 },
+              { "ID": 4, "Name": "Business Product 2", "Price": 80.50 }
+            ] } }
+          }
+        }
+      }
+    },
+    "/product/all": {
+      "get": {
+        "summary": "Get all products with role-based access (Super Admin / Business)",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 }, "description": "Page number" },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 }, "description": "Number of items per page" },
+          { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Search term for product name" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully based on user role",
+            "content": { "application/json": { "example": [
+              { "ID": 1, "Name": "SuperAdmin Product 1", "Price": 100.00, "Business_ID": 1 },
+              { "ID": 2, "Name": "SuperAdmin Product 2", "Price": 50.00, "Business_ID": 2 }
+            ] } }
           }
         }
       }
@@ -142,7 +133,7 @@
                   "Status": { "type": "string", "enum": ["pending","approved","rejected","blocked"] },
                   "SKU": { "type": "string" }
                 },
-                "required": ["Business_ID", "Category_ID", "Name", "Price", "SKU"]
+                "required": ["Business_ID","Category_ID","Name","Price","SKU"]
               },
               "example": {
                 "Business_ID": 1,
@@ -165,34 +156,10 @@
         }
       }
     },
-    "/product/{id}": {
-      "put": {
-        "summary": "Update an existing product",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "type": "object" },
-              "example": {
-                "Name": "Updated Product Name",
-                "Price": 55.00,
-                "Stock_Quantity": 15
-              }
-            }
-          }
-        },
-        "responses": { "200": { "description": "Product updated successfully" } }
-      }
-    },
     "/product/{id}/status": {
       "patch": {
         "summary": "Update product status",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
-        ],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
         "requestBody": {
           "required": true,
           "content": {
