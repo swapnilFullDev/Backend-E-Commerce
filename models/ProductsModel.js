@@ -111,8 +111,8 @@ class ProductsModel {
       `SELECT * FROM Products 
        WHERE Business_ID = ? AND Name LIKE ? 
        ORDER BY Created_At DESC 
-       LIMIT ? OFFSET ?`,
-      [businessId, `%${search}%`, limit, offset]
+       LIMIT ${Number(limit)} OFFSET ${Number(offset)}`,
+      [businessId, `%${search}%`]
     );
     return rows;
   }
