@@ -11,6 +11,21 @@ class ProductsModel {
     return rows[0];
   }
 
+  static async getAllProducts(page = 1, limit = 10, search = '') {
+    const offset = (page - 1) * limit;
+    const searchQuery = `%${search}%`;
+  
+    const sql = `
+      SELECT * FROM Products
+      WHERE Name LIKE ?
+      ORDER BY Created_At DESC
+      LIMIT ${Number(limit)} OFFSET ${Number(offset)}
+    `;
+  
+    const [rows] = await pool.execute(sql, [searchQuery]);
+    return rows;
+  }
+
   // Create new product with category validation
   static async createProduct(product) {
     // 1. Validate Category_ID exists
