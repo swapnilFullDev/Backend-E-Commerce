@@ -2,7 +2,7 @@
   "openapi": "3.0.0",
   "info": {
     "title": "Category API",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "API endpoints for managing categories and subcategories"
   },
   "paths": {
@@ -60,6 +60,78 @@
         }
       }
     },
+    "/category/{id}": {
+      "put": {
+        "summary": "Update a category or subcategory",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "image": { "type": "string" },
+                  "icon": { "type": "string" },
+                  "status": { "type": "string", "enum": ["active","inactive"] }
+                }
+              },
+              "example": {
+                "name": "Men's Casual Wear",
+                "image": "mens_new.jpg",
+                "icon": "new_icon.png",
+                "status": "active"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Category updated successfully",
+            "content": {
+              "application/json": {
+                "example": { "success": true, "message": "Category updated successfully." }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid category ID or no fields provided",
+            "content": {
+              "application/json": {
+                "example": { "success": false, "message": "At least one field must be provided to update." }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to update category",
+            "content": {
+              "application/json": {
+                "example": { "success": false, "message": "Failed to update category.", "details": "Error details" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete category safely",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category deletion response",
+            "content": {
+              "application/json": {
+                "example": { "success": false, "message": "Cannot delete category: it has subcategories." }
+              }
+            }
+          }
+        }
+      }
+    },
     "/category/{parentId}/subcategories": {
       "get": {
         "summary": "Get subcategories by parent ID",
@@ -75,24 +147,6 @@
                   { "ID": 3, "Name": "Shirts", "Parent_ID": 1, "Status": "active" },
                   { "ID": 4, "Name": "Pants", "Parent_ID": 1, "Status": "active" }
                 ]
-              }
-            }
-          }
-        }
-      }
-    },
-    "/category/{id}": {
-      "delete": {
-        "summary": "Delete category safely",
-        "parameters": [
-          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
-        ],
-        "responses": {
-          "200": {
-            "description": "Category deletion response",
-            "content": {
-              "application/json": {
-                "example": { "success": false, "message": "Cannot delete category: it has subcategories." }
               }
             }
           }
