@@ -37,6 +37,25 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
+router.put('/:id', authenticateToken, async (req, res) => {
+    const categoryId = parseInt(req.params.id);
+    if (isNaN(categoryId)) {
+      return res.status(400).json({ success: false, message: 'Invalid category ID.' });
+    }
+  
+    const { name, image, icon, status } = req.body;
+    if (!name && !image && !icon && !status) {
+      return res.status(400).json({ success: false, message: 'At least one field must be provided to update.' });
+    }
+  
+    try {
+      await CategoryModel.updateCategory(categoryId, { name, image, icon, status });
+      res.status(200).json({ success: true, message: 'Category updated successfully.' });
+    } catch (err) {
+      res.status(500).json({ success: false, message: 'Failed to update category.', details: err.message });
+    }
+  });
+
 // GET subcategories by parent ID
 router.get('/:parentId/subcategories', authenticateToken, async (req, res) => {
   try {

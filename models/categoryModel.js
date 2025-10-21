@@ -42,6 +42,38 @@ class CategoryModel {
     return rows[0];
   }
 
+  static async updateCategory(id, { name, image, icon, status }) {
+    // Build dynamic query based on provided fields
+    const fields = [];
+    const values = [];
+  
+    if (name !== undefined) {
+      fields.push('Name = ?');
+      values.push(name);
+    }
+    if (image !== undefined) {
+      fields.push('Image = ?');
+      values.push(image);
+    }
+    if (icon !== undefined) {
+      fields.push('Icon = ?');
+      values.push(icon);
+    }
+    if (status !== undefined) {
+      fields.push('Status = ?');
+      values.push(status);
+    }
+  
+    if (fields.length === 0) {
+      throw new Error('No fields provided to update');
+    }
+  
+    values.push(id); // for WHERE clause
+  
+    const sql = `UPDATE Categories SET ${fields.join(', ')} WHERE ID = ?`;
+    await pool.execute(sql, values);
+  }
+
    // 🆕 Check if category has subcategories
    static async hasSubcategories(categoryId) {
     const [rows] = await pool.execute(
