@@ -4,13 +4,13 @@ class CategoryModel {
   // Get all top-level categories (Parent_ID IS NULL)
   static async getCategories(page = 1, limit = 10, search = '') {
     const offset = (page - 1) * limit;
-    const [rows] = await pool.execute(
-      `SELECT * FROM Categories 
+    const searchParm = `%${search}%`;
+    const sql = `SELECT * FROM Categories 
        WHERE Parent_ID IS NULL AND Name LIKE ? 
        ORDER BY Name ASC 
-       LIMIT ? OFFSET ?`,
-      [`%${search}%`, limit, offset]
-    );
+       LIMIT ${Number(limit)} OFFSET ${Number(offset)}
+       `;
+    const [rows] = await pool.execute(sql,[searchParm]);
     return rows;
   }
   

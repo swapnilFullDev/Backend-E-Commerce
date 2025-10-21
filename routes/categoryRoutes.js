@@ -5,8 +5,8 @@ const CategoryModel = require('../models/categoryModel');
 
 // GET all top-level categories with pagination & search
 router.get('/', authenticateToken, async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const page = parseInt(req.query.page,10) || 1;
+  const limit = parseInt(req.query.limit,10) || 10;
   const search = req.query.q || '';
 
   try {
