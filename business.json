@@ -1,0 +1,223 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Business API",
+      "version": "1.0.0",
+      "description": "API documentation for managing BusinessDetails (create, view, update, delete, verify)"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:5000",
+        "description": "Local server"
+      }
+    ],
+    "paths": {
+      "/business": {
+        "post": {
+          "summary": "Create a new business",
+          "tags": ["Business"],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "OwnerName": { "type": "string" },
+                    "BusinessName": { "type": "string" },
+                    "BusinessEmail": { "type": "string", "format": "email" },
+                    "BusinessPhoneNo": { "type": "string" },
+                    "PersonalPhoneNo": { "type": "string" },
+                    "GSTNumber": { "type": "string" },
+                    "BusinessDocs": { "type": "string" },
+                    "BusinessAddress": { "type": "string" },
+                    "BusinessFrontImage": { "type": "string" }
+                  },
+                  "required": ["BusinessName", "BusinessEmail"]
+                },
+                "example": {
+                  "OwnerName": "John Doe",
+                  "BusinessName": "Doe Electronics",
+                  "BusinessEmail": "contact@doeelectronics.com",
+                  "BusinessPhoneNo": "+1234567890",
+                  "PersonalPhoneNo": "+0987654321",
+                  "GSTNumber": "GST123456789",
+                  "BusinessDocs": "https://example.com/docs/business-license.pdf",
+                  "BusinessAddress": "123 Main Street, Springfield",
+                  "BusinessFrontImage": "https://example.com/images/shopfront.jpg"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Created successfully",
+              "content": {
+                "application/json": {
+                  "example": { "message": "Created successfully", "insertedId": 101 }
+                }
+              }
+            }
+          }
+        },
+        "get": {
+          "summary": "Get all businesses",
+          "tags": ["Business"],
+          "security": [{ "bearerAuth": [] }],
+          "responses": {
+            "200": {
+              "description": "List of all businesses",
+              "content": {
+                "application/json": {
+                  "example": [
+                    {
+                      "ID": 1,
+                      "OwnerName": "John Doe",
+                      "BusinessName": "Doe Electronics",
+                      "BusinessEmail": "contact@doeelectronics.com",
+                      "isVerified": 1
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "/business/unverified": {
+        "get": {
+          "summary": "Get unverified businesses",
+          "tags": ["Business"],
+          "security": [{ "bearerAuth": [] }],
+          "responses": {
+            "200": {
+              "description": "List of unverified businesses",
+              "content": {
+                "application/json": {
+                  "example": [
+                    {
+                      "ID": 2,
+                      "OwnerName": "Jane Smith",
+                      "BusinessName": "Jane's Boutique",
+                      "BusinessEmail": "info@janesboutique.com",
+                      "isVerified": 0
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "/business/{id}": {
+        "get": {
+          "summary": "Get business by ID",
+          "tags": ["Business"],
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [
+            { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+          ],
+          "responses": {
+            "200": {
+              "description": "Business details",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "ID": 5,
+                    "OwnerName": "Michael Scott",
+                    "BusinessName": "Dunder Mifflin Paper Co.",
+                    "BusinessEmail": "michael@dundermifflin.com",
+                    "isVerified": 1
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Business not found"
+            }
+          }
+        },
+        "put": {
+          "summary": "Update business by ID",
+          "tags": ["Business"],
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [
+            { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/BusinessUpdate" },
+                "example": {
+                  "OwnerName": "Michael Scott",
+                  "BusinessName": "Dunder Mifflin Paper Co.",
+                  "BusinessEmail": "michael@dundermifflin.com",
+                  "BusinessPhoneNo": "+19876543210",
+                  "PersonalPhoneNo": "+1234567890",
+                  "GSTNumber": "GST998877",
+                  "BusinessDocs": "https://example.com/docs/dunder-license.pdf",
+                  "BusinessAddress": "1725 Slough Ave, Scranton, PA",
+                  "BusinessFrontImage": "https://example.com/images/dunder.jpg"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Updated successfully",
+              "content": {
+                "application/json": {
+                  "example": { "message": "Updated successfully" }
+                }
+              }
+            }
+          }
+        },
+        "delete": {
+          "summary": "Delete business by ID",
+          "tags": ["Business"],
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [
+            { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+          ],
+          "responses": {
+            "200": {
+              "description": "Deleted successfully",
+              "content": {
+                "application/json": {
+                  "example": { "message": "Deleted successfully" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "BusinessUpdate": {
+          "type": "object",
+          "properties": {
+            "OwnerName": { "type": "string" },
+            "BusinessName": { "type": "string" },
+            "BusinessEmail": { "type": "string" },
+            "BusinessPhoneNo": { "type": "string" },
+            "PersonalPhoneNo": { "type": "string" },
+            "GSTNumber": { "type": "string" },
+            "BusinessDocs": { "type": "string" },
+            "BusinessAddress": { "type": "string" },
+            "BusinessFrontImage": { "type": "string" }
+          }
+        }
+      },
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      }
+    }
+  }
+  
