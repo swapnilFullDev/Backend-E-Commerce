@@ -97,8 +97,8 @@ class ProductsModel {
       `SELECT * FROM Products 
        WHERE Status = ? AND Name LIKE ? 
        ORDER BY Created_At DESC 
-       LIMIT ? OFFSET ?`,
-      [status, `%${search}%`, limit, offset]
+       LIMIT ${Number(limit)} OFFSET ${Number(offset)}`,
+      [status, `%${search}%`]
     );
     return rows;
   }
