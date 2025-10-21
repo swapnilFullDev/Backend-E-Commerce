@@ -52,5 +52,27 @@ router.get('/', authenticateToken,async (req, res) => {
       res.status(500).json({ error: err.message });
     }
   });
+
+  // ✅ DELETE category safely
+router.delete('/:id', authenticateToken, async (req, res) => {
+    try {
+      const categoryId = parseInt(req.params.id);
+      if (isNaN(categoryId)) {
+        return res.status(400).json({ error: 'Invalid category ID' });
+      }
+  
+      await CategoryModel.deleteCategory(categoryId);
+      res.json({ message: 'Category deleted successfully.' });
+    } catch (err) {
+      if (err.code === 'HAS_SUBCATEGORIES') {
+        return res.status(400).json({ error: 'Cannot delete: category has subcategories.' });
+      }
+      if (err.code === 'HAS_PRODUCTS') {
+        return res.status(400).json({ error: 'Cannot delete: category has linked products.' });
+      }
+      res.status(500).json({ error: 'Failed to delete category', details: err.message });
+    }
+  });
+  
   
   module.exports = router;
