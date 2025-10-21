@@ -1,279 +1,209 @@
 {
-    "openapi": "3.0.0",
-    "info": {
-      "title": "Products API",
-      "version": "1.0.0",
-      "description": "Endpoints for managing products in the system."
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Products API",
+    "version": "1.0.0",
+    "description": "API endpoints for managing products"
+  },
+  "paths": {
+    "/product/{id}": {
+      "get": {
+        "summary": "Get product by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID of the product"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product retrieved successfully",
+            "content": { "application/json": { "example": { "ID": 1, "Name": "Sample Product", "Price": 99.99 } } }
+          },
+          "404": { "description": "Product not found" }
+        }
+      }
     },
-    "paths": {
-      "/product/{id}": {
-        "get": {
-          "tags": ["Product"],
-          "summary": "Get product by ID",
-          "security": [
-            { "bearerAuth": [] }
-          ],
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": { "type": "integer" },
-              "description": "Product ID"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Product found",
-              "content": {
-                "application/json": {
-                  "example": {
-                    "ID": 1,
-                    "Name": "Blue Denim Jacket",
-                    "Description": "Stylish denim jacket for men",
-                    "Price": 59.99,
-                    "Status": "approved"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Invalid product ID",
-              "content": { "application/json": { "example": { "error": "Invalid Product ID" } } }
-            },
-            "404": {
-              "description": "Product not found",
-              "content": { "application/json": { "example": { "message": "Product not found" } } }
-            }
-          }
-        }
-      },
-      "/product/status/{status}": {
-        "get": {
-          "tags": ["Product"],
-          "summary": "Get products by status",
-          "security": [
-            { "bearerAuth": [] }
-          ],
-          "parameters": [
-            {
-              "name": "status",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string",
-                "enum": ["pending", "approved", "rejected", "blocked"]
-              },
-              "description": "Status filter"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Products by status",
-              "content": {
-                "application/json": {
-                  "example": [
-                    { "ID": 2, "Name": "Running Shoes", "Status": "pending" },
-                    { "ID": 3, "Name": "Smart Watch", "Status": "pending" }
-                  ]
-                }
-              }
-            },
-            "400": {
-              "description": "Invalid status",
-              "content": { "application/json": { "example": { "error": "Invalid status" } } }
-            }
-          }
-        }
-      },
-      "/product/business/{businessId}": {
-        "get": {
-          "tags": ["Product"],
-          "summary": "Get products by business ID",
-          "security": [
-            { "bearerAuth": [] }
-          ],
-          "parameters": [
-            {
-              "name": "businessId",
-              "in": "path",
-              "required": true,
-              "schema": { "type": "integer" },
-              "description": "Business ID"
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Products for a specific business",
-              "content": {
-                "application/json": {
-                  "example": [
-                    { "ID": 10, "Name": "Wireless Mouse", "Business_ID": 2, "Status": "approved" },
-                    { "ID": 11, "Name": "Gaming Keyboard", "Business_ID": 2, "Status": "approved" }
-                  ]
-                }
-              }
-            },
-            "400": {
-              "description": "Invalid Business ID",
-              "content": { "application/json": { "example": { "error": "Invalid Business ID" } } }
-            }
-          }
-        }
-      },
-      "/product": {
-        "post": {
-          "tags": ["Product"],
-          "summary": "Create a new product",
-          "security": [
-            { "bearerAuth": [] }
-          ],
-          "requestBody": {
+    "/product/status/{status}": {
+      "get": {
+        "summary": "Get products by status with pagination and search",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "path",
             "required": true,
+            "schema": { "type": "string", "enum": ["pending","approved","rejected","blocked"] },
+            "description": "Product status filter"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 10 },
+            "description": "Number of items per page"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Search term for product name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "Business_ID": { "type": "integer", "example": 2 },
-                    "Category_ID": { "type": "integer", "example": 1 },
-                    "Subcategory_ID": { "type": "integer", "nullable": true, "example": 3 },
-                    "Name": { "type": "string", "example": "Classic Leather Wallet" },
-                    "Description": { "type": "string", "example": "Premium quality leather wallet for men" },
-                    "Price": { "type": "number", "format": "float", "example": 49.99 },
-                    "Stock_Quantity": { "type": "integer", "example": 100 },
-                    "Images": { "type": "string", "example": "[\"https://example.com/images/wallet1.jpg\"]" },
-                    "SKU": { "type": "string", "example": "WL-001" }
-                  },
-                  "required": ["Business_ID", "Category_ID", "Name", "Price", "SKU"]
-                }
+                "example": [
+                  { "ID": 1, "Name": "Sample Product", "Price": 99.99, "Status": "approved" },
+                  { "ID": 2, "Name": "Another Product", "Price": 49.99, "Status": "approved" }
+                ]
               }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Product created successfully",
-              "content": {
-                "application/json": {
-                  "example": {
-                    "ID": 12,
-                    "message": "Product created successfully"
-                  }
-                }
-              }
-            },
-            "400": {
-              "description": "Bad request",
-              "content": { "application/json": { "example": { "error": "Validation failed" } } }
-            }
-          }
-        }
-      },
-      "/product/{id}": {
-        "put": {
-          "tags": ["Product"],
-          "summary": "Update an existing product",
-          "security": [
-            { "bearerAuth": [] }
-          ],
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": { "type": "integer" },
-              "description": "Product ID"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "Name": { "type": "string", "example": "Updated Product Name" },
-                    "Description": { "type": "string", "example": "Updated description" },
-                    "Price": { "type": "number", "example": 79.99 },
-                    "Stock_Quantity": { "type": "integer", "example": 20 },
-                    "Images": { "type": "string", "example": "[\"https://example.com/images/new.jpg\"]" },
-                    "Status": { "type": "string", "example": "pending" }
-                  }
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Product updated successfully",
-              "content": { "application/json": { "example": { "message": "Product updated successfully" } } }
-            },
-            "400": {
-              "description": "Invalid Product ID or input",
-              "content": { "application/json": { "example": { "error": "Invalid Product ID" } } }
-            }
-          }
-        }
-      },
-      "/product/{id}/status": {
-        "patch": {
-          "tags": ["Product"],
-          "summary": "Update product status (admin only)",
-          "security": [
-            { "bearerAuth": [] }
-          ],
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": { "type": "integer" },
-              "description": "Product ID"
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "Status": {
-                      "type": "string",
-                      "enum": ["approved", "rejected", "blocked"],
-                      "example": "approved"
-                    }
-                  },
-                  "required": ["Status"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Product status updated successfully",
-              "content": {
-                "application/json": {
-                  "example": { "message": "Product status updated to approved" }
-                }
-              }
-            },
-            "400": {
-              "description": "Invalid Product ID or status",
-              "content": { "application/json": { "example": { "error": "Invalid status" } } }
             }
           }
         }
       }
     },
-    "components": {
-      "securitySchemes": {
-        "bearerAuth": {
-          "type": "http",
-          "scheme": "bearer",
-          "bearerFormat": "JWT"
+    "/product/business/{businessId}": {
+      "get": {
+        "summary": "Get products by business with pagination and search",
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "Business ID"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 10 }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" },
+            "description": "Search term for product name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": [
+                  { "ID": 3, "Name": "Business Product 1", "Price": 120.00 },
+                  { "ID": 4, "Name": "Business Product 2", "Price": 80.50 }
+                ]
+              }
+            }
+          }
         }
+      }
+    },
+    "/product": {
+      "post": {
+        "summary": "Create a new product",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "Business_ID": { "type": "integer" },
+                  "Category_ID": { "type": "integer" },
+                  "Subcategory_ID": { "type": "integer" },
+                  "Name": { "type": "string" },
+                  "Description": { "type": "string" },
+                  "Price": { "type": "number" },
+                  "Stock_Quantity": { "type": "integer" },
+                  "Images": { "type": "string" },
+                  "Status": { "type": "string", "enum": ["pending","approved","rejected","blocked"] },
+                  "SKU": { "type": "string" }
+                },
+                "required": ["Business_ID", "Category_ID", "Name", "Price", "SKU"]
+              },
+              "example": {
+                "Business_ID": 1,
+                "Category_ID": 2,
+                "Subcategory_ID": null,
+                "Name": "New Product",
+                "Description": "A description of the product",
+                "Price": 49.99,
+                "Stock_Quantity": 10,
+                "Images": "[\"image1.jpg\",\"image2.jpg\"]",
+                "Status": "pending",
+                "SKU": "NP-001"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Product created successfully" },
+          "400": { "description": "Invalid input or creation failed" }
+        }
+      }
+    },
+    "/product/{id}": {
+      "put": {
+        "summary": "Update an existing product",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object" },
+              "example": {
+                "Name": "Updated Product Name",
+                "Price": 55.00,
+                "Stock_Quantity": 15
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Product updated successfully" } }
+      }
+    },
+    "/product/{id}/status": {
+      "patch": {
+        "summary": "Update product status",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "properties": { "Status": { "type": "string", "enum": ["approved","rejected","blocked"] } } },
+              "example": { "Status": "approved" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Product status updated successfully" } }
       }
     }
   }
-  
+}

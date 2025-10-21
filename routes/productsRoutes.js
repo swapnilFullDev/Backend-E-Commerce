@@ -4,8 +4,8 @@ const ProductsModel = require('../models/ProductsModel');
 
 const router = express.Router();
 
-// Get product by ID
-router.get('/:id', authenticateToken,async (req, res) => {
+// ------------------- GET product by ID -------------------
+router.get('/:id', authenticateToken, async (req, res) => {
   const productId = Number(req.params.id);
   if (isNaN(productId)) return res.status(400).json({ error: 'Invalid Product ID' });
 
@@ -19,14 +19,19 @@ router.get('/:id', authenticateToken,async (req, res) => {
   }
 });
 
-// Get products by status
-router.get('/status/:status', authenticateToken,async (req, res) => {
+// ------------------- GET products by status -------------------
+router.get('/status/:status', authenticateToken, async (req, res) => {
   const status = req.params.status;
-  const validStatuses = ['pending','approved','rejected','blocked'];
+  const validStatuses = ['pending', 'approved', 'rejected', 'blocked'];
   if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
 
+  // Pagination & Search
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.q || '';
+
   try {
-    const products = await ProductsModel.getProductsByStatus(status);
+    const products = await ProductsModel.getProductsByStatus(status, page, limit, search);
     res.json(products);
   } catch (err) {
     console.error(err);
@@ -34,13 +39,18 @@ router.get('/status/:status', authenticateToken,async (req, res) => {
   }
 });
 
-// Get products by business
-router.get('/business/:businessId', authenticateToken,async (req, res) => {
+// ------------------- GET products by business -------------------
+router.get('/business/:businessId', authenticateToken, async (req, res) => {
   const businessId = Number(req.params.businessId);
   if (isNaN(businessId)) return res.status(400).json({ error: 'Invalid Business ID' });
 
+  // Pagination & Search
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.q || '';
+
   try {
-    const products = await ProductsModel.getProductsByBusiness(businessId);
+    const products = await ProductsModel.getProductsByBusiness(businessId, page, limit, search);
     res.json(products);
   } catch (err) {
     console.error(err);
@@ -48,8 +58,8 @@ router.get('/business/:businessId', authenticateToken,async (req, res) => {
   }
 });
 
-// Create product
-router.post('/', authenticateToken,async (req, res) => {
+// ------------------- CREATE product -------------------
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const product = await ProductsModel.createProduct(req.body);
     res.status(201).json(product);
@@ -59,8 +69,8 @@ router.post('/', authenticateToken,async (req, res) => {
   }
 });
 
-// Update product
-router.put('/:id', authenticateToken,async (req, res) => {
+// ------------------- UPDATE product -------------------
+router.put('/:id', authenticateToken, async (req, res) => {
   const productId = Number(req.params.id);
   if (isNaN(productId)) return res.status(400).json({ error: 'Invalid Product ID' });
 
@@ -73,13 +83,13 @@ router.put('/:id', authenticateToken,async (req, res) => {
   }
 });
 
-// Admin: update product status
-router.patch('/:id/status', authenticateToken,async (req, res) => {
+// ------------------- ADMIN: UPDATE product status -------------------
+router.patch('/:id/status', authenticateToken, async (req, res) => {
   const productId = Number(req.params.id);
   if (isNaN(productId)) return res.status(400).json({ error: 'Invalid Product ID' });
 
   const newStatus = req.body.Status;
-  const validStatuses = ['approved','rejected','blocked'];
+  const validStatuses = ['approved', 'rejected', 'blocked'];
   if (!validStatuses.includes(newStatus)) return res.status(400).json({ error: 'Invalid status' });
 
   try {

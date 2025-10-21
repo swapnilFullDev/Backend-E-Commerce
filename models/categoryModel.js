@@ -2,21 +2,27 @@ const pool = require('../db');
 
 class CategoryModel {
   // Get all top-level categories (Parent_ID IS NULL)
-  static async getCategories() {
-    const [rows] = await pool.query(
-      "SELECT * FROM Categories WHERE Parent_ID IS NULL AND Status = 'active' ORDER BY Name ASC"
+  static async getCategories(page = 1, limit = 10, search = '') {
+    const offset = (page - 1) * limit;
+    const [rows] = await pool.execute(
+      `SELECT * FROM Categories 
+       WHERE Parent_ID IS NULL AND Name LIKE ? 
+       ORDER BY Name ASC 
+       LIMIT ? OFFSET ?`,
+      [`%${search}%`, limit, offset]
     );
     return rows;
   }
+  
 
   // Get subcategories by parent ID
   static async getSubcategories(parentId) {
     const [rows] = await pool.execute(
-      "SELECT * FROM Categories WHERE Parent_ID = ? AND Status = 'active' ORDER BY Name ASC",
+      "SELECT * FROM Categories WHERE Parent_ID = ? ORDER BY Name ASC",
       [parentId]
     );
     return rows;
-  }
+  }s
 
   static async createCategory({ name, image = null, icon = null, parentId = null, status = 'active' }) {
     const [result] = await pool.execute(

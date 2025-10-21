@@ -23,16 +23,26 @@ class BusinessModel {
     return result.insertId;
   }
 
-  static async getAll() {
-    const [rows] = await pool.query(
-      'SELECT * FROM BusinessDetails ORDER BY ID DESC'
+  static async getAll(page = 1, limit = 10, search = '') {
+    const offset = (page - 1) * limit;
+    const [rows] = await pool.execute(
+      `SELECT * FROM BusinessDetails 
+       WHERE BusinessName LIKE ? 
+       ORDER BY ID DESC
+       LIMIT ? OFFSET ?`,
+      [`%${search}%`, limit, offset]
     );
     return rows;
   }
 
-  static async getUnverified() {
-    const [rows] = await pool.query(
-      'SELECT * FROM BusinessDetails WHERE isVerified = 0 ORDER BY ID DESC'
+  static async getUnverified(page = 1, limit = 10, search = '') {
+    const offset = (page - 1) * limit;
+    const [rows] = await pool.execute(
+      `SELECT * FROM BusinessDetails 
+       WHERE isVerified = 0 AND BusinessName LIKE ? 
+       ORDER BY ID DESC
+       LIMIT ? OFFSET ?`,
+      [`%${search}%`, limit, offset]
     );
     return rows;
   }

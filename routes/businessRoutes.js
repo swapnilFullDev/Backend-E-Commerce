@@ -14,21 +14,29 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Get all businesses
+// Get all businesses with pagination and search
 router.get('/', authenticateToken, async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.q || '';
+
   try {
-    const allBusinesses = await BusinessModel.getAll();
-    res.json(allBusinesses);
+    const businesses = await BusinessModel.getAll(page, limit, search);
+    res.json(businesses);
   } catch (err) {
     console.error('Error fetching businesses:', err);
     res.status(500).json({ error: 'Failed to fetch data', details: err.message });
   }
 });
 
-// Get unverified businesses
+// Get unverified businesses with pagination and search
 router.get('/unverified', authenticateToken, async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.q || '';
+
   try {
-    const unverifiedBusinesses = await BusinessModel.getUnverified();
+    const unverifiedBusinesses = await BusinessModel.getUnverified(page, limit, search);
     res.json(unverifiedBusinesses);
   } catch (err) {
     console.error('Error fetching unverified businesses:', err);

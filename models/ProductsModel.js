@@ -91,19 +91,28 @@ class ProductsModel {
   }
 
   // Get Product by Status
-  static async getProductsByStatus(status) {
+  static async getProductsByStatus(status, page = 1, limit = 10, search = '') {
+    const offset = (page - 1) * limit;
     const [rows] = await pool.execute(
-      'SELECT * FROM Products WHERE Status = ?',
-      [status]
+      `SELECT * FROM Products 
+       WHERE Status = ? AND Name LIKE ? 
+       ORDER BY Created_At DESC 
+       LIMIT ? OFFSET ?`,
+      [status, `%${search}%`, limit, offset]
     );
     return rows;
   }
+  
 
   // Get All products for business
-  static async getProductsByBusiness(businessId) {
+  static async getProductsByBusiness(businessId, page = 1, limit = 10, search = '') {
+    const offset = (page - 1) * limit;
     const [rows] = await pool.execute(
-      'SELECT * FROM Products WHERE Business_ID = ?',
-      [businessId]
+      `SELECT * FROM Products 
+       WHERE Business_ID = ? AND Name LIKE ? 
+       ORDER BY Created_At DESC 
+       LIMIT ? OFFSET ?`,
+      [businessId, `%${search}%`, limit, offset]
     );
     return rows;
   }
