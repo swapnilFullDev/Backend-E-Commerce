@@ -3,6 +3,36 @@ const { authenticateToken } = require('../middleware/auth');
 const ProductsModel = require('../models/ProductsModel');
 
 const router = express.Router();
+router.get('/all', authenticateToken, async (req, res) => {
+  console.log('/all');
+  try {
+    const user = req.user; // should be set by authenticateToken
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const search = req.query.q || '';
+    console.log('inside try',req.user);
+
+    let products;
+
+    if (user.role === 'super admin') {
+      // Super admin: all products
+      console.log('super admin');
+      products = await ProductsModel.getAllProducts(page, limit, search);
+    } else {
+      console.log('not super admin');
+      // Business user: only products for their business
+      if (!user.businessId) {
+        return res.status(400).json({ error: 'Business ID not found for user' });
+      }
+      products = await ProductsModel.getProductsByBusiness(user.businessId, page, limit, search);
+    }
+
+    res.json(products);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error', details: err.message });
+  }
+});
 
 // ------------------- GET product by ID -------------------
 router.get('/:id', authenticateToken, async (req, res) => {
@@ -102,31 +132,6 @@ router.patch('/:id/status', authenticateToken, async (req, res) => {
 });
 
 // ------------------- GET all products (role-based) -------------------
-router.get('/all', authenticateToken, async (req, res) => {
-  try {
-    const user = req.user; // should be set by authenticateToken
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
-    const search = req.query.q || '';
 
-    let products;
-
-    if (user.role === 'super admin') {
-      // Super admin: all products
-      products = await ProductsModel.getAllProducts(page, limit, search);
-    } else {
-      // Business user: only products for their business
-      if (!user.businessId) {
-        return res.status(400).json({ error: 'Business ID not found for user' });
-      }
-      products = await ProductsModel.getProductsByBusiness(user.businessId, page, limit, search);
-    }
-
-    res.json(products);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error', details: err.message });
-  }
-});
 
 module.exports = router;

@@ -33,7 +33,8 @@ router.post('/login', async (req, res) => {
       {
         userId: user.UserId, // adjust if your MySQL column is `id`
         businessId: user.BusinessId,
-        username: user.Username
+        username: user.Username,
+        role: user.Role
       },
       JWT_SECRET,
       { expiresIn: '1h' }
