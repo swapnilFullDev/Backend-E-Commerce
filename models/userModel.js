@@ -5,7 +5,7 @@ class UserModel {
   static async getUserByUsername(username) {
     const [rows] = await pool.execute(
       `
-      SELECT u.*, b.isVerified
+      SELECT u.*, b.*
       FROM Users u
       JOIN BusinessDetails b ON u.BusinessId = b.ID
       WHERE u.Username = ?
