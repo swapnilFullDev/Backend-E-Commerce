@@ -1,0 +1,208 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Category API",
+      "version": "1.0.0",
+      "description": "Endpoints for managing categories and subcategories."
+    },
+    "paths": {
+      "/category": {
+        "get": {
+          "tags": ["Category"],
+          "summary": "Get all top-level categories",
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of top-level categories",
+              "content": {
+                "application/json": {
+                  "example": [
+                    {
+                      "ID": 1,
+                      "Name": "Clothing",
+                      "Image": "https://example.com/images/clothing.jpg",
+                      "Icon": "shirt",
+                      "Status": "active"
+                    },
+                    {
+                      "ID": 2,
+                      "Name": "Electronics",
+                      "Image": "https://example.com/images/electronics.jpg",
+                      "Icon": "tv",
+                      "Status": "active"
+                    }
+                  ]
+                }
+              }
+            },
+            "500": {
+              "description": "Server error while fetching categories",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Database connection failed"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "post": {
+          "tags": ["Category"],
+          "summary": "Create a new category or subcategory",
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "Accessories"
+                    },
+                    "image": {
+                      "type": "string",
+                      "example": "https://example.com/images/accessories.jpg"
+                    },
+                    "icon": {
+                      "type": "string",
+                      "example": "bag"
+                    },
+                    "parentId": {
+                      "type": "integer",
+                      "nullable": true,
+                      "example": 1
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["active", "inactive"],
+                      "example": "active"
+                    }
+                  },
+                  "required": ["name"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Category or subcategory created successfully",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "message": "Subcategory created successfully.",
+                    "categoryId": 5
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Validation error (e.g., missing name)",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Category name is required."
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Server error while creating category",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Database connection failed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/category/{parentId}/subcategories": {
+        "get": {
+          "tags": ["Category"],
+          "summary": "Get subcategories by parent ID",
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "parentId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "integer"
+              },
+              "description": "The ID of the parent category"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of subcategories",
+              "content": {
+                "application/json": {
+                  "example": [
+                    {
+                      "ID": 6,
+                      "Name": "Men’s Clothing",
+                      "Parent_ID": 1,
+                      "Status": "active"
+                    },
+                    {
+                      "ID": 7,
+                      "Name": "Women’s Clothing",
+                      "Parent_ID": 1,
+                      "Status": "active"
+                    }
+                  ]
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid parent ID",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Invalid parent ID"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Server error while fetching subcategories",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Database connection failed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      }
+    }
+  }
+  

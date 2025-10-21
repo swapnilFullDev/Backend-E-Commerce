@@ -10,6 +10,7 @@ const authRoutes = require('./routes/authRoutes');
 const productsRoutes = require('./routes/productsRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 
+
 // Initialize an Express application
 const app = express();
 app.use(express.json());

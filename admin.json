@@ -1,0 +1,138 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Admin API",
+      "version": "1.0.0",
+      "description": "API endpoints for approving businesses and creating super admin users."
+    },
+    "paths": {
+      "/admin/approve/{id}": {
+        "put": {
+          "tags": ["Admin"],
+          "summary": "Approve or unverify a business and manage its user login",
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "integer"
+              },
+              "description": "Business ID to approve or unverify"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Business approval or unverification successful",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "message": "Business verified, new user created.",
+                    "username": "business@example.com",
+                    "tempPassword": "x8a9z2f3"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Business not found",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Business not found"
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Approval failed",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Approval failed",
+                    "details": "Database error message"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/admin/super": {
+        "post": {
+          "tags": ["Admin"],
+          "summary": "Create a Super Admin User",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "type": "string",
+                      "example": "superadmin@example.com"
+                    },
+                    "password": {
+                      "type": "string",
+                      "example": "SecurePass123!"
+                    }
+                  },
+                  "required": ["username", "password"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Super admin created successfully",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "message": "Super admin created successfully",
+                    "username": "superadmin@example.com",
+                    "role": "superadmin"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Missing username or password",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Username and password are required."
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Server error while creating super admin",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "error": "Database connection failed"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      }
+    }
+  }
+  
