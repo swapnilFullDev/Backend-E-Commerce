@@ -15,7 +15,7 @@ class BusinessModel {
         data.GSTNumber,
         data.BusinessDocs,
         data.BusinessAddress,
-        data.BusinessFrontImage
+        data.BusinessFrontImage,
       ]
     );
 
@@ -23,19 +23,58 @@ class BusinessModel {
     return result.insertId;
   }
 
-  static async getAll(page = 1, limit = 10, search = '') {
-    const offset = (page - 1) * limit;
+  // static async getAll(page = 1, limit = 10, search = '') {
+  //   const offset = (page - 1) * limit;
+  //   const [rows] = await pool.execute(
+  //     `SELECT * FROM BusinessDetails
+  //      WHERE BusinessName LIKE ?
+  //      ORDER BY ID DESC
+  //      LIMIT ? OFFSET ?`,
+  //     [`%${search}%`, limit, offset]
+  //   );
+  //   return rows;
+  // }
+  static async getAll() {
+    // const [rows] = await pool.execute(
+    //   `SELECT * FROM BusinessDetails ORDER BY ID DESC`
+    // );
     const [rows] = await pool.execute(
       `SELECT * FROM BusinessDetails 
-       WHERE BusinessName LIKE ? 
-       ORDER BY ID DESC
-       LIMIT ? OFFSET ?`,
-      [`%${search}%`, limit, offset]
+     WHERE OwnerName != 'Super Admin Business'
+     ORDER BY ID DESC`
     );
-    return rows;
+
+    // Parse JSON BusinessAddress for each record
+    const formattedRows = rows.map((row) => {
+      let parsedAddress = null;
+
+      if (row.BusinessAddress) {
+        try {
+          // Clean and normalize JSON string before parsing
+          let cleanAddress = row.BusinessAddress.trim() // remove leading/trailing spaces
+            .replace(/[\n\r\t]/g, "") // remove newlines/tabs
+            .replace(/\s{2,}/g, " "); // collapse multiple spaces
+
+          // Try parsing JSON safely
+          parsedAddress = JSON.parse(cleanAddress);
+        } catch (err) {
+          console.warn(
+            `⚠️ Invalid JSON for Business ID ${row.ID}:`,
+            row.BusinessAddress
+          );
+          parsedAddress = row.BusinessAddress; // fallback to original string
+        }
+      }
+
+      return {
+        ...row,
+        BusinessAddress: parsedAddress,
+      };
+    });
+    return formattedRows;
   }
 
-  static async getUnverified(page = 1, limit = 10, search = '') {
+  static async getUnverified(page = 1, limit = 10, search = "") {
     const offset = (page - 1) * limit;
     const [rows] = await pool.execute(
       `SELECT * FROM BusinessDetails 
@@ -49,7 +88,7 @@ class BusinessModel {
 
   static async getById(id) {
     const [rows] = await pool.execute(
-      'SELECT * FROM BusinessDetails WHERE ID = ?',
+      "SELECT * FROM BusinessDetails WHERE ID = ?",
       [id]
     );
     return rows[0];
@@ -78,16 +117,13 @@ class BusinessModel {
         data.BusinessDocs,
         data.BusinessAddress,
         data.BusinessFrontImage,
-        id
+        id,
       ]
     );
   }
 
   static async delete(id) {
-    await pool.execute(
-      'DELETE FROM BusinessDetails WHERE ID = ?',
-      [id]
-    );
+    await pool.execute("DELETE FROM BusinessDetails WHERE ID = ?", [id]);
   }
 }
 

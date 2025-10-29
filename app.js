@@ -9,7 +9,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const authRoutes = require('./routes/authRoutes');
 const productsRoutes = require('./routes/productsRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
-
+const inventoryRoutes = require('./routes/inventoryRoutes');
 
 // Initialize an Express application
 const app = express();
@@ -37,7 +37,7 @@ app.use('/admin', adminRoutes);
 app.use('/auth', authRoutes);
 app.use('/products', productsRoutes);
 app.use('/categories', categoryRoutes);
-
+app.use('/inventory', inventoryRoutes);
 // Set the port for the server to listen on
 const port = 3000;
 app.listen(port, () => {

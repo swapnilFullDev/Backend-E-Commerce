@@ -21,7 +21,7 @@ router.get('/', authenticateToken, async (req, res) => {
   const search = req.query.q || '';
 
   try {
-    const businesses = await BusinessModel.getAll(page, limit, search);
+    const businesses = await BusinessModel.getAll();
     res.json(businesses);
   } catch (err) {
     console.error('Error fetching businesses:', err);
