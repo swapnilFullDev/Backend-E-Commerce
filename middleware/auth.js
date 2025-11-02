@@ -5,9 +5,11 @@ function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader?.split(' ')[1]; // Expected format: "Bearer <token>"
   
-    if (!token) { 
+    if (!token)
       return res.status(401).json({ message: 'Access token missing' });
-    }
+
+    if (!authHeader || !authHeader.startsWith('Bearer '))
+      return res.status(401).json({ message: 'Authorization header missing or invalid' });
   
     jwt.verify(token, JWT_SECRET, (err, user) => {
       if (err) {

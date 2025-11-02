@@ -1,0 +1,79 @@
+const BusinessModel = require('../models/businessModel');
+
+// ✅ Create a new business
+exports.createBusiness = async (req, res) => {
+  try {
+    const newId = await BusinessModel.create(req.body);
+    res.status(201).json({ message: 'Created successfully', insertedId: newId });
+  } catch (err) {
+    console.error('Error creating business:', err);
+    res.status(500).json({ error: 'Create failed', details: err.message });
+  }
+};
+
+// ✅ Get all businesses with pagination and search
+exports.getAllBusinesses = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.q || '';
+
+  try {
+    const businesses = await BusinessModel.getAll(page, limit, search);
+    res.json(businesses);
+  } catch (err) {
+    console.error('Error fetching businesses:', err);
+    res.status(500).json({ error: 'Failed to fetch data', details: err.message });
+  }
+};
+
+// ✅ Get all unverified businesses
+exports.getUnverifiedBusinesses = async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const search = req.query.q || '';
+
+  try {
+    const unverifiedBusinesses = await BusinessModel.getUnverified(page, limit, search);
+    res.json(unverifiedBusinesses);
+  } catch (err) {
+    console.error('Error fetching unverified businesses:', err);
+    res.status(500).json({ error: 'Failed to fetch unverified businesses', details: err.message });
+  }
+};
+
+// ✅ Get business by ID
+exports.getBusinessById = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const business = await BusinessModel.getById(id);
+    if (!business) return res.status(404).json({ error: 'Business not found' });
+    res.json(business);
+  } catch (err) {
+    console.error('Error fetching business:', err);
+    res.status(500).json({ error: 'Failed to fetch data', details: err.message });
+  }
+};
+
+// ✅ Update business by ID
+exports.updateBusiness = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await BusinessModel.update(id, req.body);
+    res.json({ message: 'Updated successfully' });
+  } catch (err) {
+    console.error('Error updating business:', err);
+    res.status(500).json({ error: 'Update failed', details: err.message });
+  }
+};
+
+// ✅ Delete business by ID
+exports.deleteBusiness = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await BusinessModel.delete(id);
+    res.json({ message: 'Deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting business:', err);
+    res.status(500).json({ error: 'Delete failed', details: err.message });
+  }
+};

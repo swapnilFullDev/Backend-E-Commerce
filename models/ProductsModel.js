@@ -174,15 +174,15 @@ class ProductsModel {
       [businessId, searchQuery],
     )
     const total = countResult[0].total
-
+        
     // Get paginated results
     const [rows] = await pool.execute(
       `SELECT * FROM Products 
-       WHERE Business_ID = ? AND Name LIKE ? 
-       ORDER BY Created_At DESC 
-       LIMIT ? OFFSET ?`,
-      [businessId, searchQuery, limit, offset],
-    )
+      WHERE Business_ID = ? AND Name LIKE ?
+      ORDER BY Created_At DESC 
+      LIMIT ${Number(limit)} OFFSET ${Number(offset)}`,
+      [businessId, searchQuery]
+    );
 
     return {
       data: rows,

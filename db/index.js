@@ -38,40 +38,6 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-async function createInventoryTable() {
-  try {
-    const sql = `
-      CREATE TABLE IF NOT EXISTS Inventory (
-        ID INT AUTO_INCREMENT PRIMARY KEY,
-        ProductName VARCHAR(255) NOT NULL,
-        Business_id INT NOT NULL,
-        AvailableSizes VARCHAR(50),
-        AvailableColour VARCHAR(100),
-        Prices DECIMAL(10,2),
-        IsReturnAcceptable BOOLEAN DEFAULT FALSE,
-        IsAvailableOnRent BOOLEAN DEFAULT FALSE,
-        ProductImages TEXT,
-        ComboDetails TEXT,
-        Description TEXT,
-        FabricMaterial VARCHAR(255),
-        Status ENUM('Active', 'Inactive') DEFAULT 'Active',
-        Category ENUM('M', 'W', 'Kids'),
-        AvailableOnline BOOLEAN DEFAULT TRUE,
-        FOREIGN KEY (Business_id) REFERENCES BusinessDetails(ID) ON DELETE CASCADE
-      );
-    `;
-
-    await pool.execute(sql);
-    console.log('✅ Inventory table created successfully!');
-  } catch (err) {
-    console.error('❌ Error creating Inventory table:', err);
-  } finally {
-    await pool.end();
-  }
-}
-
-// createInventoryTable();
-
 (async () => {
   try {
     const conn = await pool.getConnection();
