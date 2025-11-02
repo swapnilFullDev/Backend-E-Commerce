@@ -16,12 +16,12 @@ if (process.env.DB_CA_CERT && process.env.DB_CA_CERT.trim() !== '') {
   }
   sslConfig = {
     ca: fs.readFileSync(caCertPath),
-    rejectUnauthorized: true,
+    rejectUnauthorized: false,
   };
 } else {
   // Use basic SSL verification (Aiven MySQL requires SSL)
   sslConfig = {
-    rejectUnauthorized: true,
+    rejectUnauthorized: false,
   };
 }
 
