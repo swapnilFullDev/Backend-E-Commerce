@@ -6,7 +6,7 @@ class UserModel {
     const [rows] = await pool.execute(
       `
       SELECT u.*, b.*
-      FROM Users u
+      FROM users u
       JOIN BusinessDetails b ON u.BusinessId = b.ID
       WHERE u.Username = ?
       `,
@@ -22,7 +22,7 @@ class UserModel {
 
     const [result] = await pool.execute(
       `
-      UPDATE Users
+      UPDATE users
       SET PasswordHash = ?
       WHERE Username = ? AND BusinessId = ?
       `,

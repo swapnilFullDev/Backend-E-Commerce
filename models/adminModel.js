@@ -30,7 +30,7 @@ async function approveBusinessAndCreateLogin(businessId) {
 
       // Deactivate the user login
       await conn.execute(
-        'UPDATE Users SET IsActive = 0 WHERE BusinessId = ?',
+        'UPDATE users SET IsActive = 0 WHERE BusinessId = ?',
         [businessId]
       );
 
@@ -44,7 +44,7 @@ async function approveBusinessAndCreateLogin(businessId) {
 
       // Check if user already exists
       const [userRows] = await conn.execute(
-        'SELECT * FROM Users WHERE BusinessId = ?',
+        'SELECT * FROM users WHERE BusinessId = ?',
         [businessId]
       );
       const userExists = userRows.length > 0;
@@ -52,7 +52,7 @@ async function approveBusinessAndCreateLogin(businessId) {
       if (userExists) {
         // Reactivate existing user
         await conn.execute(
-          'UPDATE Users SET IsActive = 1 WHERE BusinessId = ?',
+          'UPDATE users SET IsActive = 1 WHERE BusinessId = ?',
           [businessId]
         );
         message = 'Business verified, user already exists and is now active.';
@@ -63,7 +63,7 @@ async function approveBusinessAndCreateLogin(businessId) {
 
         // Insert new user
         await conn.execute(
-          `INSERT INTO Users (BusinessId, Username, PasswordHash)
+          `INSERT INTO users (BusinessId, Username, PasswordHash)
            VALUES (?, ?, ?)`,
           [businessId, business.BusinessEmail, hashedPassword]
         );
@@ -96,7 +96,7 @@ async function createSuperAdmin(username, password) {
 
     // Check if user with same username already exists
     const [existingRows] = await conn.execute(
-      'SELECT * FROM Users WHERE Username = ?',
+      'SELECT * FROM users WHERE Username = ?',
       [username]
     );
 
@@ -109,7 +109,7 @@ async function createSuperAdmin(username, password) {
 
     // Insert new super admin user
     await conn.execute(
-      `INSERT INTO Users (BusinessId, Username, PasswordHash, Role, IsActive)
+      `INSERT INTO users (BusinessId, Username, PasswordHash, Role, IsActive)
        VALUES (NULL, ?, ?, 'super admin', 1)`,
       [username, hashedPassword]
     );
