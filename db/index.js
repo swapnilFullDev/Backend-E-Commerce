@@ -1,17 +1,17 @@
-const mysql = require('mysql2/promise');
-const fs = require('fs');
-const path = require('path');
-const dotenv = require('dotenv');
+const mysql = require("mysql2/promise");
+const fs = require("fs");
+const path = require("path");
+const dotenv = require("dotenv");
 dotenv.config();
 
 // Determine SSL configuration
 let sslConfig = undefined;
 
-if (process.env.DB_CA_CERT && process.env.DB_CA_CERT.trim() !== '') {
+if (process.env.DB_CA_CERT && process.env.DB_CA_CERT.trim() !== "") {
   // Use CA certificate if provided
   const caCertPath = path.resolve(process.env.DB_CA_CERT);
   if (!fs.existsSync(caCertPath)) {
-    console.error('❌ CA certificate file not found at:', caCertPath);
+    console.error("❌ CA certificate file not found at:", caCertPath);
     process.exit(1);
   }
   sslConfig = {
@@ -41,14 +41,14 @@ const pool = mysql.createPool({
 (async () => {
   try {
     const conn = await pool.getConnection();
-    console.log('✅ Connected to Aiven MySQL!');
+    console.log("✅ Connected to Aiven MySQL!");
 
-    const [rows] = await conn.query('SELECT NOW() AS now');
-    console.log('Current DB time:', rows[0].now);
+    const [rows] = await conn.query("SELECT NOW() AS now");
+    console.log("Current DB time:", rows[0].now);
 
     conn.release();
   } catch (err) {
-    console.error('❌ Database Connection Failed!', err);
+    console.error("❌ Database Connection Failed!", err);
   }
 })();
 
