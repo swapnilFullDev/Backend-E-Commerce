@@ -6,9 +6,9 @@ class UserModel {
     const [rows] = await pool.execute(
       `
       SELECT u.*, b.*
-      FROM Users u
-      JOIN BusinessDetails b ON u.BusinessId = b.ID
-      WHERE u.Username = ?
+      FROM admin_user u
+      JOIN business_details b ON u.businessId = b.id
+      WHERE u.email = ?
       `,
       [username]
     );
@@ -16,17 +16,17 @@ class UserModel {
     return rows[0];
   }
 
-  static async updateUserPassword(username, businessId, newPassword) {
+  static async updateUserPassword(email, newPassword) {
     // Hash the new password securely
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     const [result] = await pool.execute(
       `
-      UPDATE Users
-      SET PasswordHash = ?
-      WHERE Username = ? AND BusinessId = ?
+      UPDATE users
+      SET password = ?, confirmPassword = ?
+      WHERE email = ?
       `,
-      [hashedPassword, username, businessId]
+      [hashedPassword, hashedPassword, email]
     );
 
     // result.affectedRows gives the number of updated rows

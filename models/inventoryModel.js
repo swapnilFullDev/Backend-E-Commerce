@@ -11,13 +11,13 @@ class InventoryModel {
 
       // Fetch paginated data
       const [rows] = await pool.execute(
-        `SELECT * FROM Inventory WHERE Business_id = ? ORDER BY ID DESC LIMIT ${limit} OFFSET ${offset}`,
+        `SELECT * FROM inventory WHERE Business_id = ? ORDER BY ID DESC LIMIT ${limit} OFFSET ${offset}`,
         [businessId]
       );
 
       // Fetch total count for pagination
       const [[{ total }]] = await pool.execute(
-        `SELECT COUNT(*) AS total FROM Inventory WHERE Business_id = ?`,
+        `SELECT COUNT(*) AS total FROM inventory WHERE Business_id = ?`,
         [businessId]
       );
       // ✅ Convert column names to lowerFirst (e.g., AvailableColour → availableColour)
@@ -53,7 +53,7 @@ class InventoryModel {
       console.log(item);
 
       const [result] = await pool.execute(
-        `INSERT INTO Inventory
+        `INSERT INTO inventory
           (ProductName, Business_id, AvailableSizes, AvailableColour, Prices, IsReturnAcceptable, IsAvailableOnRent, ProductImages, ComboDetails, Description, FabricMaterial, Status, Category, AvailableOnline)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
@@ -87,7 +87,7 @@ class InventoryModel {
   static async updateInventoryItem(id, updates) {
     try {
       const [result] = await pool.execute(
-        `UPDATE Inventory SET
+        `UPDATE inventory SET
           ProductName = ?,
           AvailableSizes = ?,
           AvailableColour = ?,
@@ -136,7 +136,7 @@ class InventoryModel {
   static async deleteInventoryItem(id) {
     try {
       const [result] = await pool.execute(
-        `DELETE FROM Inventory WHERE ID = ?`,
+        `DELETE FROM inventory WHERE ID = ?`,
         [id]
       );
       if (result.affectedRows === 0) {
@@ -155,12 +155,12 @@ class InventoryModel {
     
       switch (field) {
         case "Rent":
-          sql = `UPDATE Inventory SET IsAvailableOnRent = NOT IsAvailableOnRent WHERE ID = ?`;
+          sql = `UPDATE inventory SET IsAvailableOnRent = NOT IsAvailableOnRent WHERE ID = ?`;
           params = [id];
           break;
 
         case "Status":
-          sql = `UPDATE Inventory 
+          sql = `UPDATE inventory 
            SET Status = CASE 
                WHEN Status = 'Active' THEN 'Inactive' 
                ELSE 'Active' 
@@ -170,7 +170,7 @@ class InventoryModel {
           break;
 
         case "Online":
-          sql = `UPDATE Inventory SET AvailableOnline = NOT AvailableOnline WHERE ID = ?`;
+          sql = `UPDATE inventory SET AvailableOnline = NOT AvailableOnline WHERE ID = ?`;
           params = [id];
           break;
 
@@ -181,7 +181,7 @@ class InventoryModel {
       const [result] = await pool.execute(sql, params);
 
       if (result.affectedRows === 0) {
-        throw new Error('Inventory item not found');
+        throw new Error('inventory item not found');
       }
 
       return true;
@@ -192,7 +192,7 @@ class InventoryModel {
 
   static async getById(id) {
     try {
-      const [rows] = await pool.execute("SELECT * FROM Inventory WHERE ID = ?", [id]);
+      const [rows] = await pool.execute("SELECT * FROM inventory WHERE ID = ?", [id]);
       return rows[0] || null;
     } catch (error) {
       throw new Error('Failed to get inventory item by ID: ' + error.message);

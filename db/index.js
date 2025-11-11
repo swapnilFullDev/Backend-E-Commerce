@@ -34,7 +34,7 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   ssl: sslConfig,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 20000,
   queueLimit: 0,
 });
 

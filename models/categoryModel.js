@@ -11,13 +11,13 @@ class CategoryModel {
 
       // Get total count for pagination
       const [countResult] = await pool.execute(
-        "SELECT COUNT(*) AS total FROM Categories WHERE Parent_ID IS NULL AND Name LIKE ?",
+        "SELECT COUNT(*) AS total FROM categories WHERE Parent_ID IS NULL AND Name LIKE ?",
         [searchParam]
       );
 
       // Get paginated results
       const dataQuery = `
-        SELECT * FROM Categories 
+        SELECT * FROM categories 
         WHERE Parent_ID IS NULL AND Name LIKE ? 
         ORDER BY Name ASC 
         LIMIT ? OFFSET ?
@@ -40,7 +40,7 @@ class CategoryModel {
   static async getSubcategories(parentId) {
     try {
       const [rows] = await pool.execute(
-        "SELECT * FROM Categories WHERE Parent_ID = ? ORDER BY Name ASC",
+        "SELECT * FROM categories WHERE Parent_ID = ? ORDER BY Name ASC",
         [parentId]
       );
       return rows;
@@ -55,7 +55,7 @@ class CategoryModel {
 
     try {
       const [children] = await pool.execute(
-        "SELECT * FROM Categories WHERE Parent_ID = ? ORDER BY Name ASC",
+        "SELECT * FROM categories WHERE Parent_ID = ? ORDER BY Name ASC",
         [categoryId]
       );
 
@@ -78,7 +78,7 @@ class CategoryModel {
 
       while (currentId) {
         const [rows] = await pool.execute(
-          "SELECT ID, Name, Parent_ID FROM Categories WHERE ID = ?",
+          "SELECT ID, Name, Parent_ID FROM categories WHERE ID = ?",
           [currentId]
         );
         if (rows.length === 0) break;
@@ -101,7 +101,7 @@ class CategoryModel {
       // Optionally check if parentId exists (if provided)
       if (parentId !== null) {
         const [parentRows] = await pool.execute(
-          "SELECT ID FROM Categories WHERE ID = ?",
+          "SELECT ID FROM categories WHERE ID = ?",
           [parentId]
         );
         if (parentRows.length === 0) {
@@ -110,7 +110,7 @@ class CategoryModel {
       }
 
       const [result] = await pool.execute(
-        `INSERT INTO Categories (Name, Image, Icon, Parent_ID, Status)
+        `INSERT INTO categories (Name, Image, Icon, Parent_ID, Status)
          VALUES (?, ?, ?, ?, ?)`,
         [name.trim(), image, icon, parentId, status]
       );
@@ -125,7 +125,7 @@ class CategoryModel {
   static async getById(id) {
     try {
       const [rows] = await pool.execute(
-        "SELECT * FROM Categories WHERE ID = ?",
+        "SELECT * FROM categories WHERE ID = ?",
         [id]
       );
       return rows[0] || null;
@@ -170,7 +170,7 @@ class CategoryModel {
 
       values.push(id);
 
-      const sql = `UPDATE Categories SET ${fields.join(", ")} WHERE ID = ?`;
+      const sql = `UPDATE categories SET ${fields.join(", ")} WHERE ID = ?`;
       const [result] = await pool.execute(sql, values);
 
       if (result.affectedRows === 0) {
@@ -187,7 +187,7 @@ class CategoryModel {
   static async hasSubcategories(categoryId) {
     try {
       const [rows] = await pool.execute(
-        "SELECT COUNT(*) AS count FROM Categories WHERE Parent_ID = ?",
+        "SELECT COUNT(*) AS count FROM categories WHERE Parent_ID = ?",
         [categoryId]
       );
       return rows[0].count > 0;
@@ -231,7 +231,7 @@ class CategoryModel {
       }
 
       const [result] = await pool.execute(
-        "DELETE FROM Categories WHERE ID = ?",
+        "DELETE FROM categories WHERE ID = ?",
         [categoryId]
       );
 

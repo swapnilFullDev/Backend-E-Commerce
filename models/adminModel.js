@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 async function approveBusinessAndCreateLogin(businessId) {
   const conn = await pool.getConnection();
-  
+
   let generatedPassword = null;
   let message = '';
   let isNewUser = false;
@@ -11,26 +11,26 @@ async function approveBusinessAndCreateLogin(businessId) {
   try {
     await conn.beginTransaction();
 
-    // Get the business details within transaction
+    // Fetch business details
     const [businessRows] = await conn.execute(
-      'SELECT * FROM BusinessDetails WHERE ID = ?',
+      'SELECT * FROM business_details WHERE id = ?',
       [businessId]
     );
     const business = businessRows[0];
     if (!business) throw new Error('Business not found');
 
-    const isCurrentlyVerified = business.isVerified;
+    const isCurrentlyVerified = business.is_verified;
 
     if (isCurrentlyVerified) {
       // Unverify the business
       await conn.execute(
-        'UPDATE BusinessDetails SET isVerified = 0 WHERE ID = ?',
+        'UPDATE business_details SET is_verified = 0 WHERE id = ?',
         [businessId]
       );
 
       // Deactivate the user login
       await conn.execute(
-        'UPDATE Users SET IsActive = 0 WHERE BusinessId = ?',
+        'UPDATE user_accounts SET is_active = 0 WHERE business_id = ?',
         [businessId]
       );
 
@@ -38,24 +38,26 @@ async function approveBusinessAndCreateLogin(businessId) {
     } else {
       // Verify the business
       await conn.execute(
-        'UPDATE BusinessDetails SET isVerified = 1 WHERE ID = ?',
+        'UPDATE business_details SET is_verified = 1 WHERE id = ?',
         [businessId]
       );
 
       // Check if user already exists
       const [userRows] = await conn.execute(
-        'SELECT * FROM Users WHERE BusinessId = ?',
+        'SELECT * FROM user_accounts WHERE business_id = ?',
         [businessId]
       );
+
       const userExists = userRows.length > 0;
 
       if (userExists) {
         // Reactivate existing user
         await conn.execute(
-          'UPDATE Users SET IsActive = 1 WHERE BusinessId = ?',
+          'UPDATE user_accounts SET is_active = 1 WHERE business_id = ?',
           [businessId]
         );
-        message = 'Business verified, user already exists and is now active.';
+
+        message = 'Business verified, existing user reactivated.';
       } else {
         // Generate password and hash it
         generatedPassword = Math.random().toString(36).slice(-8);
@@ -63,10 +65,11 @@ async function approveBusinessAndCreateLogin(businessId) {
 
         // Insert new user
         await conn.execute(
-          `INSERT INTO Users (BusinessId, Username, PasswordHash)
-           VALUES (?, ?, ?)`,
-          [businessId, business.BusinessEmail, hashedPassword]
+          `INSERT INTO user_accounts (business_id, username, password_hash, role, is_active)
+           VALUES (?, ?, ?, 'business_admin', 1)`,
+          [businessId, business.business_email, hashedPassword]
         );
+
         isNewUser = true;
         message = 'Business verified, new user created.';
       }
@@ -75,11 +78,10 @@ async function approveBusinessAndCreateLogin(businessId) {
     await conn.commit();
 
     return {
-      username: business.BusinessEmail,
+      username: business.business_email,
       tempPassword: isNewUser ? generatedPassword : null,
-      message
+      message,
     };
-
   } catch (error) {
     await conn.rollback();
     throw error;
@@ -90,13 +92,12 @@ async function approveBusinessAndCreateLogin(businessId) {
 
 async function createSuperAdmin(username, password) {
   const conn = await pool.getConnection();
-  let hashedPassword;
   try {
     await conn.beginTransaction();
 
     // Check if user with same username already exists
     const [existingRows] = await conn.execute(
-      'SELECT * FROM Users WHERE Username = ?',
+      'SELECT * FROM user_accounts WHERE username = ?',
       [username]
     );
 
@@ -104,13 +105,13 @@ async function createSuperAdmin(username, password) {
       throw new Error('User with this username already exists.');
     }
 
-    // Hash the password
-    hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert new super admin user
+    // Insert new super admin
     await conn.execute(
-      `INSERT INTO Users (BusinessId, Username, PasswordHash, Role, IsActive)
-       VALUES (NULL, ?, ?, 'super admin', 1)`,
+      `INSERT INTO user_accounts (business_id, username, password_hash, role, is_active)
+       VALUES (NULL, ?, ?, 'super_admin', 1)`,
       [username, hashedPassword]
     );
 
@@ -119,9 +120,8 @@ async function createSuperAdmin(username, password) {
     return {
       username,
       tempPassword: password,
-      message: 'Super admin created successfully.'
+      message: 'Super admin created successfully.',
     };
-
   } catch (error) {
     await conn.rollback();
     throw error;
@@ -132,5 +132,5 @@ async function createSuperAdmin(username, password) {
 
 module.exports = {
   approveBusinessAndCreateLogin,
-  createSuperAdmin
+  createSuperAdmin,
 };

@@ -8,40 +8,45 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key';
 exports.loginUser = async (req, res) => {
   const { username, password } = req.body;
 
-  try {
+  try {    
     const user = await UserModel.getUserByUsername(username);
-
+    console.log(user);
     if (!user) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Check if account is active
-    if (!user.IsActive) {
+    // Check account status
+    if (user.status === 'Inactive' || user.isDeleted === 1) {
       return res.status(403).json({ error: 'Your account is deactivated. Please contact support.' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.PasswordHash);
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     // Create JWT token
     const token = jwt.sign(
       {
-        userId: user.UserId, // change if your DB uses `id`
-        businessId: user.BusinessId,
-        username: user.Username,
-        role: user.Role
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        fullName: user.fullName,
+        business_id: user.businessId,
+        business_name: user.business_name
       },
       JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '6h' }
     );
 
     res.json({
       token,
-      email: user.Username,
-      role: user.Role,
-      name: user.BusinessName
+      email: user.email,
+      name: user.username,
+      role: user.role,
+      business_id: user.businessId,
+      businessName: user.business_name,
+      message: 'Login successful'
     });
 
   } catch (err) {
@@ -52,20 +57,20 @@ exports.loginUser = async (req, res) => {
 
 // ✅ Reset Password
 exports.resetPassword = async (req, res) => {
-  const { username, newPassword } = req.body;
+  const { email, newPassword } = req.body;
 
   try {
-    const user = await UserModel.getUserByUsername(username);
+    const user = await UserModel.getUserByEmail(email);
 
     if (!user) {
-      return res.status(401).json({ error: 'Username not found' });
+      return res.status(401).json({ error: 'Email not found' });
     }
 
-    if (!user.IsActive) {
+    if (user.status === 'Inactive' || user.isDeleted === 1) {
       return res.status(403).json({ error: 'Account is inactive. Cannot reset password.' });
     }
 
-    await UserModel.updateUserPassword(user.Username, user.BusinessId, newPassword);
+    await UserModel.updateUserPassword(email, newPassword);
 
     res.json({
       message: 'Password reset successful.'

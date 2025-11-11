@@ -3,7 +3,7 @@ const pool = require("../db")
 class ProductsModel {
   // Get product by ID
   static async getProductById(productId) {
-    const [rows] = await pool.execute("SELECT * FROM Products WHERE ID = ?", [productId])
+    const [rows] = await pool.execute("SELECT * FROM products WHERE ID = ?", [productId])
     return rows[0]
   }
 
@@ -12,12 +12,12 @@ class ProductsModel {
     const searchQuery = `%${search}%`
 
     // Get total count
-    const [countResult] = await pool.execute("SELECT COUNT(*) as total FROM Products WHERE Name LIKE ?", [searchQuery])
+    const [countResult] = await pool.execute("SELECT COUNT(*) as total FROM products WHERE Name LIKE ?", [searchQuery])
     const total = countResult[0].total
 
     // Get paginated results
     const [rows] = await pool.execute(
-      `SELECT * FROM Products
+      `SELECT * FROM products
        WHERE Name LIKE ?
        ORDER BY Created_At DESC
        LIMIT ? OFFSET ?`,
@@ -62,7 +62,7 @@ class ProductsModel {
     }
 
     // 3. Check for duplicate SKU within the same business
-    const [skuCheck] = await pool.execute("SELECT ID FROM Products WHERE SKU = ? AND Business_ID = ?", [
+    const [skuCheck] = await pool.execute("SELECT ID FROM products WHERE SKU = ? AND Business_ID = ?", [
       product.SKU,
       product.Business_ID,
     ])
@@ -72,7 +72,7 @@ class ProductsModel {
 
     // 4. Insert product
     const [result] = await pool.execute(
-      `INSERT INTO Products
+      `INSERT INTO products
         (Business_ID, Category_ID, Subcategory_ID, Name, Description, Price, Stock_Quantity, Images, Status, SKU, Created_At, Updated_At)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
@@ -120,7 +120,7 @@ class ProductsModel {
     updateFields.push("Updated_At = NOW()")
     updateValues.push(productId)
 
-    const sql = `UPDATE Products SET ${updateFields.join(", ")} WHERE ID = ?`
+    const sql = `UPDATE products SET ${updateFields.join(", ")} WHERE ID = ?`
 
     const [result] = await pool.execute(sql, updateValues)
 
@@ -138,14 +138,14 @@ class ProductsModel {
 
     // Get total count
     const [countResult] = await pool.execute(
-      "SELECT COUNT(*) as total FROM Products WHERE Status = ? AND Name LIKE ?",
+      "SELECT COUNT(*) as total FROM products WHERE Status = ? AND Name LIKE ?",
       [status, searchQuery],
     )
     const total = countResult[0].total
 
     // Get paginated results
     const [rows] = await pool.execute(
-      `SELECT * FROM Products 
+      `SELECT * FROM products 
        WHERE Status = ? AND Name LIKE ? 
        ORDER BY Created_At DESC 
        LIMIT ? OFFSET ?`,
@@ -170,14 +170,14 @@ class ProductsModel {
 
     // Get total count
     const [countResult] = await pool.execute(
-      "SELECT COUNT(*) as total FROM Products WHERE Business_ID = ? AND Name LIKE ?",
+      "SELECT COUNT(*) as total FROM products WHERE Business_ID = ? AND Name LIKE ?",
       [businessId, searchQuery],
     )
     const total = countResult[0].total
         
     // Get paginated results
     const [rows] = await pool.execute(
-      `SELECT * FROM Products 
+      `SELECT * FROM products 
       WHERE Business_ID = ? AND Name LIKE ?
       ORDER BY Created_At DESC 
       LIMIT ${Number(limit)} OFFSET ${Number(offset)}`,
@@ -203,7 +203,7 @@ class ProductsModel {
     }
 
     const [result] = await pool.execute(
-      `UPDATE Products
+      `UPDATE products
        SET Status = ?, Updated_At = NOW()
        WHERE ID = ?`,
       [newStatus, productId],
@@ -217,7 +217,7 @@ class ProductsModel {
   }
 
   static async deleteProduct(productId) {
-    const [result] = await pool.execute("DELETE FROM Products WHERE ID = ?", [productId])
+    const [result] = await pool.execute("DELETE FROM products WHERE ID = ?", [productId])
 
     if (result.affectedRows === 0) {
       throw new Error("No product found with the given ID")
