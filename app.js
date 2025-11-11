@@ -44,12 +44,12 @@ app.use('/delivery', deliveryRoutes);
 app.use('/api/user', userRoutes);
 // Set the port for the server to listen on
 const port = 3000;
-// app.listen(port, () => {
-//   const host = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
-//   console.log(`✅ Server is running at: ${host}`);
-//   console.log(`Server is running at http://localhost:${port}`);
-//   }
-// );
-app.listen(port, '192.168.0.171',() => {
-  console.log(`Server is running at http://192.168.0.193:${port}`);
-});
+app.listen(port, () => {
+  const host = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
+  console.log(`✅ Server is running at: ${host}`);
+  console.log(`Server is running at http://localhost:${port}`);
+  }
+);
+// app.listen(port, '192.168.0.171',() => {
+//   console.log(`Server is running at http://192.168.0.193:${port}`);
+// });
