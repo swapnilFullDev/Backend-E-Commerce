@@ -15,12 +15,12 @@ exports.loginUser = async (req, res) => {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
-    // Check if account is active
-    if (!user.IsActive) {
+    // Check if account is active (admin_user uses `isActive`)
+    if (!user.isActive) {
       return res.status(403).json({ error: 'Your account is deactivated. Please contact support.' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.PasswordHash);
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
@@ -28,20 +28,20 @@ exports.loginUser = async (req, res) => {
     // Create JWT token
     const token = jwt.sign(
       {
-        userId: user.UserId, // change if your DB uses `id`
-        businessId: user.BusinessId,
-        username: user.Username,
-        role: user.Role
+        userId: user.id, // admin_user.id
+        businessId: user.businessId,
+        username: user.username,
+        role: user.role
       },
       JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '24h' }
     );
 
     res.json({
       token,
-      email: user.Username,
-      role: user.Role,
-      name: user.BusinessName
+      email: user.email || user.username,
+      role: user.role,
+      name: user.business_name || (user.business && user.business.business_name) || null
     });
 
   } catch (err) {
@@ -61,11 +61,11 @@ exports.resetPassword = async (req, res) => {
       return res.status(401).json({ error: 'Username not found' });
     }
 
-    if (!user.IsActive) {
+    if (!user.isActive) {
       return res.status(403).json({ error: 'Account is inactive. Cannot reset password.' });
     }
 
-    await UserModel.updateUserPassword(user.Username, user.BusinessId, newPassword);
+    await UserModel.updateUserPassword(user.username || user.Username || user.email, user.businessId || user.BusinessId, newPassword);
 
     res.json({
       message: 'Password reset successful.'

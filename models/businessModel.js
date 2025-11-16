@@ -3,19 +3,19 @@ const pool = require('../db');
 class BusinessModel {
   static async create(data) {
     const [result] = await pool.execute(
-      `INSERT INTO BusinessDetails 
-        (OwnerName, BusinessName, BusinessEmail, BusinessPhoneNo, PersonalPhoneNo, GSTNumber, BusinessDocs, BusinessAddress, BusinessFrontImage)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO business_details 
+          (owner_name, business_name, business_email, business_phone_no, personal_phone_no, gst_number, business_docs, business_address, business_front_image)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        data.OwnerName,
-        data.BusinessName,
-        data.BusinessEmail,
-        data.BusinessPhoneNo,
-        data.PersonalPhoneNo,
-        data.GSTNumber,
-        data.BusinessDocs,
-        data.BusinessAddress,
-        data.BusinessFrontImage,
+        data.owner_name || data.OwnerName,
+        data.business_name || data.BusinessName,
+        data.business_email || data.BusinessEmail,
+        data.business_phone_no || data.BusinessPhoneNo,
+        data.personal_phone_no || data.PersonalPhoneNo,
+        data.gst_number || data.GSTNumber,
+        data.business_docs || data.BusinessDocs,
+        data.business_address || data.BusinessAddress,
+        data.business_front_image || data.BusinessFrontImage,
       ]
     );
 
@@ -23,35 +23,22 @@ class BusinessModel {
     return result.insertId;
   }
 
-  // static async getAll(page = 1, limit = 10, search = '') {
-  //   const offset = (page - 1) * limit;
-  //   const [rows] = await pool.execute(
-  //     `SELECT * FROM BusinessDetails
-  //      WHERE BusinessName LIKE ?
-  //      ORDER BY ID DESC
-  //      LIMIT ? OFFSET ?`,
-  //     [`%${search}%`, limit, offset]
-  //   );
-  //   return rows;
-  // }
   static async getAll() {
-    // const [rows] = await pool.execute(
-    //   `SELECT * FROM BusinessDetails ORDER BY ID DESC`
-    // );
     const [rows] = await pool.execute(
-      `SELECT * FROM BusinessDetails 
-     WHERE OwnerName != 'Super Admin Business'
-     ORDER BY ID DESC`
+      `SELECT * FROM business_details 
+       WHERE owner_name != 'Super Admin Business'
+       ORDER BY id DESC`
     );
 
     // Parse JSON BusinessAddress for each record
     const formattedRows = rows.map((row) => {
       let parsedAddress = null;
 
-      if (row.BusinessAddress) {
+      if (row.business_address) {
         try {
           // Clean and normalize JSON string before parsing
-          let cleanAddress = row.BusinessAddress.trim() // remove leading/trailing spaces
+          let cleanAddress = row.business_address
+            .trim() // remove leading/trailing spaces
             .replace(/[\n\r\t]/g, "") // remove newlines/tabs
             .replace(/\s{2,}/g, " "); // collapse multiple spaces
 
@@ -59,16 +46,16 @@ class BusinessModel {
           parsedAddress = JSON.parse(cleanAddress);
         } catch (err) {
           console.warn(
-            `⚠️ Invalid JSON for Business ID ${row.ID}:`,
-            row.BusinessAddress
+            `⚠️ Invalid JSON for Business ID ${row.id}:`,
+            row.business_address
           );
-          parsedAddress = row.BusinessAddress; // fallback to original string
+          parsedAddress = row.business_address; // fallback to original string
         }
       }
 
       return {
         ...row,
-        BusinessAddress: parsedAddress,
+        business_address: parsedAddress,
       };
     });
     return formattedRows;
@@ -77,10 +64,10 @@ class BusinessModel {
   static async getUnverified(page = 1, limit = 10, search = "") {
     const offset = (page - 1) * limit;
     const [rows] = await pool.execute(
-      `SELECT * FROM BusinessDetails 
-       WHERE isVerified = 0 AND BusinessName LIKE ? 
-       ORDER BY ID DESC
-       LIMIT ? OFFSET ?`,
+      `SELECT * FROM business_details 
+         WHERE is_verified = 0 AND business_name LIKE ? 
+         ORDER BY id DESC
+         LIMIT ? OFFSET ?`,
       [`%${search}%`, limit, offset]
     );
     return rows;
@@ -88,7 +75,7 @@ class BusinessModel {
 
   static async getById(id) {
     const [rows] = await pool.execute(
-      "SELECT * FROM BusinessDetails WHERE ID = ?",
+      "SELECT * FROM business_details WHERE id = ?",
       [id]
     );
     return rows[0];
@@ -96,34 +83,48 @@ class BusinessModel {
 
   static async update(id, data) {
     await pool.execute(
-      `UPDATE BusinessDetails SET
-        OwnerName = ?,
-        BusinessName = ?,
-        BusinessEmail = ?,
-        BusinessPhoneNo = ?,
-        PersonalPhoneNo = ?,
-        GSTNumber = ?,
-        BusinessDocs = ?,
-        BusinessAddress = ?,
-        BusinessFrontImage = ?
-      WHERE ID = ?`,
+      `UPDATE business_details SET
+          owner_name = ?,
+          business_name = ?,
+          business_email = ?,
+          business_phone_no = ?,
+          personal_phone_no = ?,
+          gst_number = ?,
+          business_docs = ?,
+          business_address = ?,
+          business_front_image = ?
+        WHERE id = ?`,
       [
-        data.OwnerName,
-        data.BusinessName,
-        data.BusinessEmail,
-        data.BusinessPhoneNo,
-        data.PersonalPhoneNo,
-        data.GSTNumber,
-        data.BusinessDocs,
-        data.BusinessAddress,
-        data.BusinessFrontImage,
+        data.owner_name || data.OwnerName,
+        data.business_name || data.BusinessName,
+        data.business_email || data.BusinessEmail,
+        data.business_phone_no || data.BusinessPhoneNo,
+        data.personal_phone_no || data.PersonalPhoneNo,
+        data.gst_number || data.GSTNumber,
+        data.business_docs || data.BusinessDocs,
+        data.business_address || data.BusinessAddress,
+        data.business_front_image || data.BusinessFrontImage,
         id,
       ]
     );
   }
 
   static async delete(id) {
-    await pool.execute("DELETE FROM BusinessDetails WHERE ID = ?", [id]);
+    try {
+      // Delete inventory items for this business
+      await pool.execute("DELETE FROM inventory WHERE business_id = ?", [id]);
+  
+      // Delete products for this business
+      await pool.execute("DELETE FROM products WHERE business_id = ?", [id]);
+  
+      // Finally delete the business record
+      await pool.execute("DELETE FROM business_details WHERE id = ?", [id]);
+      return {
+        message: "Business and related records deleted successfully"
+      }
+    } catch (error) {
+      console.error("Error deleting business and related records:", error);
+    }
   }
 }
 

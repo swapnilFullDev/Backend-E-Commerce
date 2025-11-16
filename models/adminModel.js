@@ -11,26 +11,26 @@ async function approveBusinessAndCreateLogin(businessId) {
   try {
     await conn.beginTransaction();
 
-    // Get the business details within transaction
+    // Get the business details within transaction (table is `business_details`)
     const [businessRows] = await conn.execute(
-      'SELECT * FROM BusinessDetails WHERE ID = ?',
+      'SELECT * FROM business_details WHERE id = ?',
       [businessId]
     );
     const business = businessRows[0];
     if (!business) throw new Error('Business not found');
 
-    const isCurrentlyVerified = business.isVerified;
+  const isCurrentlyVerified = business.is_verified;
 
     if (isCurrentlyVerified) {
       // Unverify the business
       await conn.execute(
-        'UPDATE BusinessDetails SET isVerified = 0 WHERE ID = ?',
+        'UPDATE business_details SET is_verified = 0 WHERE id = ?',
         [businessId]
       );
 
-      // Deactivate the user login
+      // Deactivate the user login (admin_user table)
       await conn.execute(
-        'UPDATE users SET IsActive = 0 WHERE BusinessId = ?',
+        'UPDATE admin_user SET isActive = 0 WHERE businessId = ?',
         [businessId]
       );
 
@@ -38,13 +38,14 @@ async function approveBusinessAndCreateLogin(businessId) {
     } else {
       // Verify the business
       await conn.execute(
-        'UPDATE BusinessDetails SET isVerified = 1 WHERE ID = ?',
+        'UPDATE business_details SET is_verified = 1 WHERE id = ?',
         [businessId]
       );
 
       // Check if user already exists
+      // Check for existing admin_user associated with this business
       const [userRows] = await conn.execute(
-        'SELECT * FROM users WHERE BusinessId = ?',
+        'SELECT * FROM admin_user WHERE businessId = ?',
         [businessId]
       );
       const userExists = userRows.length > 0;
@@ -52,7 +53,7 @@ async function approveBusinessAndCreateLogin(businessId) {
       if (userExists) {
         // Reactivate existing user
         await conn.execute(
-          'UPDATE users SET IsActive = 1 WHERE BusinessId = ?',
+          'UPDATE admin_user SET isActive = 1 WHERE businessId = ?',
           [businessId]
         );
         message = 'Business verified, user already exists and is now active.';
@@ -63,9 +64,9 @@ async function approveBusinessAndCreateLogin(businessId) {
 
         // Insert new user
         await conn.execute(
-          `INSERT INTO users (BusinessId, Username, PasswordHash)
-           VALUES (?, ?, ?)`,
-          [businessId, business.BusinessEmail, hashedPassword]
+          `INSERT INTO admin_user (businessId, username, passwordHash, isActive, role)
+           VALUES (?, ?, ?, 1, 'business_admin')`,
+          [businessId, business.business_email || business.BusinessEmail, hashedPassword]
         );
         isNewUser = true;
         message = 'Business verified, new user created.';
@@ -75,7 +76,7 @@ async function approveBusinessAndCreateLogin(businessId) {
     await conn.commit();
 
     return {
-      username: business.BusinessEmail,
+      username: business.business_email || business.BusinessEmail,
       tempPassword: isNewUser ? generatedPassword : null,
       message
     };
@@ -96,8 +97,8 @@ async function createSuperAdmin(username, password) {
 
     // Check if user with same username already exists
     const [existingRows] = await conn.execute(
-      'SELECT * FROM users WHERE Username = ?',
-      [username]
+      'SELECT * FROM admin_user WHERE username = ? OR email = ?',
+      [username, username]
     );
 
     if (existingRows.length > 0) {
@@ -109,8 +110,8 @@ async function createSuperAdmin(username, password) {
 
     // Insert new super admin user
     await conn.execute(
-      `INSERT INTO users (BusinessId, Username, PasswordHash, Role, IsActive)
-       VALUES (NULL, ?, ?, 'super admin', 1)`,
+      `INSERT INTO admin_user (businessId, username, passwordHash, role, isActive)
+       VALUES (NULL, ?, ?, 'super_admin', 1)`,
       [username, hashedPassword]
     );
 

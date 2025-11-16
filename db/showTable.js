@@ -36,4 +36,53 @@ async function showDatabaseDetails() {
   }
 }
 
+async function getAllTablesAndFields(dbConfig) {
+  try {
+    // Query to fetch all tables and their column details
+    const [rows] = await pool.execute(`
+      SELECT 
+        TABLE_NAME,
+        COLUMN_NAME,
+        COLUMN_TYPE,
+        IS_NULLABLE,
+        COLUMN_KEY,
+        COLUMN_DEFAULT,
+        EXTRA
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+      ORDER BY TABLE_NAME, ORDINAL_POSITION;
+    `);
+
+    // Organize results by table
+    const tables = {};
+    for (const row of rows) {
+      if (!tables[row.TABLE_NAME]) {
+        tables[row.TABLE_NAME] = [];
+      }
+      tables[row.TABLE_NAME].push({
+        column: row.COLUMN_NAME,
+        type: row.COLUMN_TYPE,
+        nullable: row.IS_NULLABLE,
+        key: row.COLUMN_KEY,
+        default: row.COLUMN_DEFAULT,
+        extra: row.EXTRA
+      });
+    }
+
+    // Print nicely to console
+    console.log('📋 All Tables and Their Fields:\n');
+    for (const [table, fields] of Object.entries(tables)) {
+      console.log(`🧱 Table: ${table}`);
+      fields.forEach(col => {
+        console.log(`   • ${col.column} (${col.type})${col.key ? ' [' + col.key + ']' : ''}`);
+      });
+      console.log('');
+    }
+
+    return tables;
+  } catch (err) {
+    console.error('❌ Error fetching table details:', err.message);
+  }
+}
+
 // showDatabaseDetails();

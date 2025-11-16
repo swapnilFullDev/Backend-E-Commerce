@@ -1,7 +1,7 @@
 const pool = require("../db");
 
 class CategoryModel {
-  // Get all top-level categories (Parent_ID IS NULL) with pagination and search
+  // Get all top-level categories (parent_id IS NULL) with pagination and search
   static async getCategories(page = 1, limit = 10, search = "") {
     try {
       const validLimit = Math.min(Math.max(Number.parseInt(limit) || 10, 1), 100);
@@ -11,19 +11,14 @@ class CategoryModel {
 
       // Get total count for pagination
       const [countResult] = await pool.execute(
-        "SELECT COUNT(*) AS total FROM Categories WHERE Parent_ID IS NULL AND Name LIKE ?",
+        "SELECT COUNT(*) AS total FROM categories WHERE parent_id IS NULL AND name LIKE ?",
         [searchParam]
       );
 
-      // Get paginated results
-      const dataQuery = `
-        SELECT * FROM Categories 
-        WHERE Parent_ID IS NULL AND Name LIKE ? 
-        ORDER BY Name ASC 
-        LIMIT ? OFFSET ?
-      `;
-      const [rows] = await pool.execute(dataQuery, [searchParam, validLimit, offset]);
-
+      // Get paginated results (ensure numeric LIMIT and OFFSET)
+      const dataQuery = `SELECT * FROM categories WHERE parent_id IS NULL AND name LIKE ? ORDER BY name ASC LIMIT ${validLimit} OFFSET ${offset}`;
+      
+      const [rows] = await pool.execute(dataQuery, [searchParam]);
       return {
         data: rows,
         total: countResult[0].total,
@@ -40,7 +35,7 @@ class CategoryModel {
   static async getSubcategories(parentId) {
     try {
       const [rows] = await pool.execute(
-        "SELECT * FROM Categories WHERE Parent_ID = ? ORDER BY Name ASC",
+        "SELECT * FROM categories WHERE parent_id = ? ORDER BY name ASC",
         [parentId]
       );
       return rows;
@@ -55,13 +50,13 @@ class CategoryModel {
 
     try {
       const [children] = await pool.execute(
-        "SELECT * FROM Categories WHERE Parent_ID = ? ORDER BY Name ASC",
+        "SELECT * FROM categories WHERE parent_id = ? ORDER BY name ASC",
         [categoryId]
       );
 
       let allDescendants = [...children];
       for (const child of children) {
-        const descendants = await this.getAllDescendants(child.ID, depth + 1, maxDepth);
+        const descendants = await this.getAllDescendants(child.id, depth + 1, maxDepth);
         allDescendants = allDescendants.concat(descendants);
       }
       return allDescendants;
@@ -78,12 +73,12 @@ class CategoryModel {
 
       while (currentId) {
         const [rows] = await pool.execute(
-          "SELECT ID, Name, Parent_ID FROM Categories WHERE ID = ?",
+          "SELECT id, name, parent_id FROM categories WHERE id = ?",
           [currentId]
         );
         if (rows.length === 0) break;
         path.unshift(rows[0]);
-        currentId = rows[0].Parent_ID;
+        currentId = rows[0].parent_id;
       }
       return path;
     } catch (error) {
@@ -101,7 +96,7 @@ class CategoryModel {
       // Optionally check if parentId exists (if provided)
       if (parentId !== null) {
         const [parentRows] = await pool.execute(
-          "SELECT ID FROM Categories WHERE ID = ?",
+          "SELECT id FROM categories WHERE id = ?",
           [parentId]
         );
         if (parentRows.length === 0) {
@@ -110,7 +105,7 @@ class CategoryModel {
       }
 
       const [result] = await pool.execute(
-        `INSERT INTO Categories (Name, Image, Icon, Parent_ID, Status)
+        `INSERT INTO categories (name, image, icon, parent_id, status)
          VALUES (?, ?, ?, ?, ?)`,
         [name.trim(), image, icon, parentId, status]
       );
@@ -125,7 +120,7 @@ class CategoryModel {
   static async getById(id) {
     try {
       const [rows] = await pool.execute(
-        "SELECT * FROM Categories WHERE ID = ?",
+        "SELECT * FROM categories WHERE id = ?",
         [id]
       );
       return rows[0] || null;
@@ -148,19 +143,19 @@ class CategoryModel {
         if (!name || typeof name !== "string" || !name.trim()) {
           throw new Error("Category name must be a non-empty string.");
         }
-        fields.push("Name = ?");
+        fields.push("name = ?");
         values.push(name.trim());
       }
       if (image !== undefined) {
-        fields.push("Image = ?");
+        fields.push("image = ?");
         values.push(image);
       }
       if (icon !== undefined) {
-        fields.push("Icon = ?");
+        fields.push("icon = ?");
         values.push(icon);
       }
       if (status !== undefined) {
-        fields.push("Status = ?");
+        fields.push("status = ?");
         values.push(status);
       }
 
@@ -170,7 +165,7 @@ class CategoryModel {
 
       values.push(id);
 
-      const sql = `UPDATE Categories SET ${fields.join(", ")} WHERE ID = ?`;
+      const sql = `UPDATE categories SET ${fields.join(", ")} WHERE id = ?`;
       const [result] = await pool.execute(sql, values);
 
       if (result.affectedRows === 0) {
@@ -187,7 +182,7 @@ class CategoryModel {
   static async hasSubcategories(categoryId) {
     try {
       const [rows] = await pool.execute(
-        "SELECT COUNT(*) AS count FROM Categories WHERE Parent_ID = ?",
+        "SELECT COUNT(*) AS count FROM categories WHERE parent_id = ?",
         [categoryId]
       );
       return rows[0].count > 0;
@@ -200,7 +195,7 @@ class CategoryModel {
   static async hasProducts(categoryId) {
     try {
       const [rows] = await pool.execute(
-        "SELECT COUNT(*) AS count FROM Products WHERE Category_ID = ?",
+        "SELECT COUNT(*) AS count FROM products WHERE category_id = ?",
         [categoryId]
       );
       return rows[0].count > 0;
@@ -231,7 +226,7 @@ class CategoryModel {
       }
 
       const [result] = await pool.execute(
-        "DELETE FROM Categories WHERE ID = ?",
+        "DELETE FROM categories WHERE id = ?",
         [categoryId]
       );
 

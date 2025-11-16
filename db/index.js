@@ -24,7 +24,6 @@ if (process.env.DB_CA_CERT && process.env.DB_CA_CERT.trim() !== "") {
     rejectUnauthorized: false,
   };
 }
-
 // Create MySQL pool
 const pool = mysql.createPool({
   host: process.env.DB_HOST,

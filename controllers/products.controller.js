@@ -42,7 +42,8 @@ exports.getProductById = async (req, res) => {
     const product = await ProductsModel.getProductById(productId);
     if (!product) return res.status(404).json({ error: 'Product not found' });
 
-    if (user.role !== 'super_admin' && product.Business_ID !== user.businessId) {
+    const productBusinessId = product.business_id || product.Business_ID;
+    if (user.role !== 'super_admin' && productBusinessId !== user.businessId) {
       return res.status(403).json({ error: 'Unauthorized access to this product' });
     }
 
@@ -112,15 +113,18 @@ exports.getProductsByBusiness = async (req, res) => {
 exports.createProduct = async (req, res) => {
   const user = req.user;
   try {
-    if (user.role === 'super_admin') {
-      return res.status(403).json({ error: 'Super admin cannot create products' });
-    }
+      if (user.role === 'super_admin') {
+        return res.status(403).json({ error: 'Super admin cannot create products' });
+      }
 
-    if (req.body.Business_ID !== user.businessId) {
-      return res.status(403).json({ error: 'Cannot create products for other businesses' });
-    }
+      // Accept either Business_ID or business_id in request
+      const bodyBusinessId = req.body.Business_ID || req.body.business_id;
+      if (bodyBusinessId !== user.businessId) {
+        return res.status(403).json({ error: 'Cannot create products for other businesses' });
+      }
 
-    const product = await ProductsModel.createProduct(req.body);
+      // Pass request body to model (model accepts both casing)
+      const product = await ProductsModel.createProduct(req.body);
     res.status(201).json(product);
   } catch (err) {
     console.error('Error creating product:', err);
@@ -137,16 +141,18 @@ exports.updateProduct = async (req, res) => {
   try {
     const product = await ProductsModel.getProductById(productId);
     if (!product) return res.status(404).json({ error: 'Product not found' });
-
-    if (user.role !== 'super_admin' && product.Business_ID !== user.businessId) {
-      return res.status(403).json({ error: 'Unauthorized to update this product' });
-    }
-
-    if (req.body.Business_ID && req.body.Business_ID !== product.Business_ID) {
-      return res.status(400).json({ error: 'Cannot change product business' });
-    }
-
-    await ProductsModel.updateProduct(productId, req.body);
+  
+      const productBusinessId = product.Business_ID || product.business_id;
+      if (user.role !== 'super_admin' && productBusinessId !== user.businessId) {
+        return res.status(403).json({ error: 'Unauthorized to update this product' });
+      }
+  
+      const reqBusinessId = req.body.Business_ID || req.body.business_id;
+      if (reqBusinessId && reqBusinessId !== productBusinessId) {
+        return res.status(400).json({ error: 'Cannot change product business' });
+      }
+  
+      await ProductsModel.updateProduct(productId, req.body);
     res.json({ message: 'Product updated successfully' });
   } catch (err) {
     console.error('Error updating product:', err);
@@ -186,13 +192,14 @@ exports.deleteProduct = async (req, res) => {
   try {
     const product = await ProductsModel.getProductById(productId);
     if (!product) return res.status(404).json({ error: 'Product not found' });
-
-    if (user.role !== 'super_admin' && product.Business_ID !== user.businessId) {
-      return res.status(403).json({ error: 'Unauthorized to delete this product' });
-    }
-
-    await ProductsModel.deleteProduct(productId);
-    res.json({ message: 'Product deleted successfully' });
+  
+      const productBusinessId = product.Business_ID || product.business_id;
+      if (user.role !== 'super_admin' && productBusinessId !== user.businessId) {
+        return res.status(403).json({ error: 'Unauthorized to delete this product' });
+      }
+  
+      await ProductsModel.deleteProduct(productId);
+      res.json({ message: 'Product deleted successfully' });
   } catch (err) {
     console.error('Error deleting product:', err);
     res.status(400).json({ error: err.message });
